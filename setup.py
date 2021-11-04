@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 reqs = [
-    "pytorch-lightning==1.5.*"
+    "pytorch-lightning==1.5.*", "shapely==1.8.*"
 ]
 
 extras_require = {

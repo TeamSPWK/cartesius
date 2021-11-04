@@ -1,0 +1,23 @@
+name: lint
+
+on: push
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - name: Check format with isort
+        run: |
+          pip install isort
+          isort -c .
+      - name: Check format with yapf
+        run: |
+          pip install yapf
+          yapf -rd .
+      - name: Check format with pylint
+        run: |
+          pip install pylint
+          pylint parka
+          pylint tests --disable=redefined-outer-name

@@ -1,0 +1,17 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Setup
+*.egg-info/
+
+# VS code
+.vscode/*
+
+# Logs & results
+wandb/*
+results/*
+*.pt
+*.ckpt
+*.zip

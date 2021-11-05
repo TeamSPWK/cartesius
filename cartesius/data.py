@@ -18,8 +18,8 @@ class PolygonDataset(Dataset):
         self.x_max = x_max
         self.y_min = y_min
         self.y_max = y_max
-        self.radius_range = radius_range
         self.n_range = n_range
+        self.radius_range = radius_range
         self.tasks = tasks if tasks is not None else []
 
     def __len__(self):

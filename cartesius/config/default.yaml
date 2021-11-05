@@ -8,6 +8,9 @@ seed: null
 train: True
 test: True
 
+# Paths
+save_dir: "results"
+
 # Model
 model_name: "transformer"
 d_model: 128
@@ -19,16 +22,16 @@ activation: "gelu"
 n_layers: 3
 
 # Tasks
-tasks: ["area"]
+tasks: ["area", "perimeter"]
 task_d_ff: 256
 task_dropout: 0.1
 
 # Training
 lr: 3e-5
 batch_size: 64
-n_batch_per_epoch: 100
+n_batch_per_epoch: 1000
 grad_clip: 40.0
-max_time: "00:12:00:00"   # Maximum 12h or training
+max_time: "00:12:00:00"   # Maximum 12h of training
 n_workers: 8
 
 # Polygon generation

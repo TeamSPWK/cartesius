@@ -97,7 +97,7 @@ if __name__ == "__main__":
 
         wandb_logger = pl.loggers.WandbLogger(project=conf.project_name, config=conf)
         # wandb_logger.watch(model, log="all", log_graph=False)
-        mc = ModelCheckpoint(monitor="val_loss", mode="min")
+        mc = ModelCheckpoint(dirpath=conf.save_dir, monitor="val_loss", mode="min")
         trainer = pl.Trainer(
             gpus=1,
             logger=wandb_logger,

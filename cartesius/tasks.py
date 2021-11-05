@@ -59,6 +59,12 @@ class GuessArea(Task):
         return polygon.area
 
 
+class GuessPerimeter(Task):
+    def get_label(self, polygon):
+        return polygon.length
+
+
 TASKS = {
     "area": GuessArea,
+    "perimeter": GuessPerimeter,
 }

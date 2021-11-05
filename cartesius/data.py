@@ -3,17 +3,21 @@ import random
 
 import torch
 from torch.utils.data import Dataset
+from torch.utils.data import DataLoader
 from shapely.geometry import Polygon
 from shapely.geometry import LineString
 from shapely.geometry import Point
 import numpy as np
+import pytorch_lightning as pl
+
+from cartesius.utils import save_polygon
 
 
 PAD_COORD = (0, 0)
 
 
 class PolygonDataset(Dataset):
-    def __init__(self, n_range, radius_range, x_min=-100, x_max=100, y_min=-100, y_max=100, tasks=None):
+    def __init__(self, n_range, radius_range, x_min=-100, x_max=100, y_min=-100, y_max=100, tasks=None, batch_size=64, n_batch_per_epoch=1000):
         self.x_min = x_min
         self.x_max = x_max
         self.y_min = y_min
@@ -22,8 +26,11 @@ class PolygonDataset(Dataset):
         self.radius_range = radius_range
         self.tasks = tasks if tasks is not None else []
 
+        self.batch_size = batch_size
+        self.n_batch_per_epoch = n_batch_per_epoch
+
     def __len__(self):
-        return 1024  # Infinite dataset
+        return self.batch_size * self.n_batch_per_epoch  # Anyway, infinite dataset
 
     def __getitem__(self, idx):
         x_ctr = random.randint(self.x_min, self.x_max)
@@ -37,8 +44,10 @@ class PolygonDataset(Dataset):
 
         labels = [task.get_label(p) for task in self.tasks]
 
+        poly_coords = list(p.boundary.coords) if isinstance(p, Polygon) else list(p.coords)
+
         return {
-            "polygon": p.boundary.coords[:-1],
+            "polygon": poly_coords,
             "labels": labels,
         }
 
@@ -129,11 +138,73 @@ def collate_coords(samples):
     }
 
 
-if __name__ == "__main__":
-    from cartesius.tasks import GuessArea
-    d = PolygonDataset([3, 4, 5, 6, 7, 8], [1], tasks=[GuessArea()])
+class PolygonDataModule(pl.LightningDataModule):
+    """DataModule for the Polygon Dataset.
 
-    from torch.utils.data import DataLoader
-    dd = DataLoader(d, batch_size=4, collate_fn=collate_coords)
+    Args:
+        conf (omegaconf.OmegaConf): Configuration.
+        tasks (list): List of Tasks to train on.
+    """
 
-    print(next(iter(dd)))
+    def __init__(self, conf, tasks):
+        super().__init__()
+
+        self.x_min = conf["x_min"]
+        self.x_max = conf["x_max"]
+        self.y_min = conf["y_min"]
+        self.y_max = conf["y_max"]
+        self.n_range = conf["n_range"]
+        self.radius_range = conf["radius_range"]
+        self.tasks = tasks
+
+        self.batch_size = conf["batch_size"]
+        self.n_batch_per_epoch = conf["n_batch_per_epoch"]
+        self.n_workers = conf["n_workers"]
+
+    def setup(self, stage=None):
+        self.poly_dataset = PolygonDataset(
+            n_range=self.n_range,
+            radius_range=self.radius_range,
+            x_min=self.x_min,
+            x_max=self.x_max,
+            y_min=self.y_min,
+            y_max=self.y_max,
+            tasks=self.tasks,
+            batch_size=self.batch_size,
+            n_batch_per_epoch=self.n_batch_per_epoch
+        )
+        self.val_dataset = PolygonDataset(
+            n_range=self.n_range,
+            radius_range=self.radius_range,
+            x_min=self.x_min,
+            x_max=self.x_max,
+            y_min=self.y_min,
+            y_max=self.y_max,
+            tasks=self.tasks,
+            batch_size=self.batch_size,
+            n_batch_per_epoch=1
+        )
+
+    def train_dataloader(self):
+        return DataLoader(
+            self.poly_dataset,
+            batch_size=self.batch_size,
+            collate_fn=collate_coords,
+            num_workers=self.n_workers
+        )
+
+    def val_dataloader(self):
+        return DataLoader(
+            self.val_dataset,
+            batch_size=self.batch_size,
+            collate_fn=collate_coords,
+            num_workers=self.n_workers
+        )
+
+    def test_dataloader(self):
+        return DataLoader(
+            self.val_dataset,
+            batch_size=self.batch_size,
+            collate_fn=collate_coords,
+            num_workers=self.n_workers
+        )

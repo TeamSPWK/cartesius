@@ -2,6 +2,35 @@
 parent_config: null
 description: "This is the configuration used by default."
 
+# General
+project_name: "Cartesius"
+seed: null
+train: True
+test: True
+
+# Model
+model_name: "transformer"
+d_model: 128
+max_seq_len: 256
+n_heads: 8
+d_ff: 256
+dropout: 0
+activation: "gelu"
+n_layers: 3
+
+# Tasks
+tasks: ["area"]
+task_d_ff: 256
+task_dropout: 0.1
+
+# Training
+lr: 3e-5
+batch_size: 64
+n_batch_per_epoch: 100
+grad_clip: 40.0
+max_time: "00:12:00:00"   # Maximum 12h or training
+n_workers: 8
+
 # Polygon generation
 x_min: -100
 x_max: 100

@@ -1,5 +1,6 @@
 import math
 import random
+from functools import partial
 
 import torch
 from torch.utils.data import Dataset
@@ -12,9 +13,7 @@ import pytorch_lightning as pl
 
 from cartesius.utils import save_polygon
 from cartesius.transforms import TRANSFORMS
-
-
-PAD_COORD = (0, 0)
+from cartesius.tokenizers import TOKENIZERS
 
 
 class PolygonDataset(Dataset):
@@ -54,10 +53,7 @@ class PolygonDataset(Dataset):
 
         poly_coords = list(p.boundary.coords) if isinstance(p, Polygon) else list(p.coords)
 
-        return {
-            "polygon": poly_coords,
-            "labels": labels,
-        }
+        return poly_coords, labels
 
     def _gen_poly(self, x_ctr, y_ctr, avg_radius, irregularity, spikeyness, n_vert):
         """Method taken from https://stackoverflow.com/a/25276331
@@ -121,29 +117,16 @@ class PolygonDataset(Dataset):
             return Polygon(points)
 
 
-def collate_coords(samples):
-    polygons = [s["polygon"] for s in samples]
+def collate(samples, tokenizer):
+    polygons = [s[0] for s in samples]
+    labels = [s[1] for s in samples]
 
-    # Collate coords by padding to the maximum length
-    pad_size = max(len(p) for p in polygons)
-    masks = []
-    padded_polygons = []
-    for poly in polygons:
-        m = [1 if i < len(poly) else 0 for i in range(pad_size)]
-        p = poly + [PAD_COORD for _ in range(pad_size - len(poly))]
+    # Tokenize the polygons
+    batch = tokenizer(polygons)
 
-        masks.append(m)
-        padded_polygons.append(p)
-
-    # Retrieve list of labels
-    labels = [s["labels"] for s in samples]
-    labels = [torch.tensor([lbl[i] for lbl in labels]) for i in range(len(labels[0]))]
-
-    return {
-        "polygon": torch.tensor(padded_polygons),
-        "mask": torch.tensor(masks, dtype=torch.bool),
-        "labels": labels,
-    }
+    # Add the labels
+    batch["labels"] = [torch.tensor([lbl[i] for lbl in labels]) for i in range(len(labels[0]))]
+    return batch
 
 
 class PolygonDataModule(pl.LightningDataModule):
@@ -165,6 +148,9 @@ class PolygonDataModule(pl.LightningDataModule):
         self.radius_range = conf["radius_range"]
         self.tasks = tasks
         self.transforms = conf["transforms"]
+
+        self.tokenizer = TOKENIZERS[conf["tokenizer"]]()
+        self.collate_fn = partial(collate, tokenizer=self.tokenizer)
 
         self.batch_size = conf["batch_size"]
         self.n_batch_per_epoch = conf["n_batch_per_epoch"]
@@ -200,7 +186,7 @@ class PolygonDataModule(pl.LightningDataModule):
         return DataLoader(
             self.poly_dataset,
             batch_size=self.batch_size,
-            collate_fn=collate_coords,
+            collate_fn=self.collate_fn,
             num_workers=self.n_workers
         )
 
@@ -208,7 +194,7 @@ class PolygonDataModule(pl.LightningDataModule):
         return DataLoader(
             self.val_dataset,
             batch_size=self.batch_size,
-            collate_fn=collate_coords,
+            collate_fn=self.collate_fn,
             num_workers=self.n_workers
         )
 
@@ -216,6 +202,6 @@ class PolygonDataModule(pl.LightningDataModule):
         return DataLoader(
             self.val_dataset,
             batch_size=self.batch_size,
-            collate_fn=collate_coords,
+            collate_fn=self.collate_fn,
             num_workers=self.n_workers
         )

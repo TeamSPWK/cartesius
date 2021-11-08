@@ -11,13 +11,14 @@ import numpy as np
 import pytorch_lightning as pl
 
 from cartesius.utils import save_polygon
+from cartesius.transforms import TRANSFORMS
 
 
 PAD_COORD = (0, 0)
 
 
 class PolygonDataset(Dataset):
-    def __init__(self, n_range, radius_range, x_min=-100, x_max=100, y_min=-100, y_max=100, tasks=None, batch_size=64, n_batch_per_epoch=1000):
+    def __init__(self, n_range, radius_range, x_min=-100, x_max=100, y_min=-100, y_max=100, tasks=None, transforms=None, batch_size=64, n_batch_per_epoch=1000):
         self.x_min = x_min
         self.x_max = x_max
         self.y_min = y_min
@@ -25,6 +26,8 @@ class PolygonDataset(Dataset):
         self.n_range = n_range
         self.radius_range = radius_range
         self.tasks = tasks if tasks is not None else []
+        transforms = transforms if transforms is not None else []
+        self.transforms = [TRANSFORMS[tr] for tr in transforms]
 
         self.batch_size = batch_size
         self.n_batch_per_epoch = n_batch_per_epoch
@@ -42,6 +45,11 @@ class PolygonDataset(Dataset):
 
         p = self._gen_poly(x_ctr, y_ctr, radius, irregularity, spikeyness, n)
 
+        # Apply transforms
+        for tr in self.transforms:
+            p = tr(p)
+
+        # Compute labels for each task
         labels = [task.get_label(p) for task in self.tasks]
 
         poly_coords = list(p.boundary.coords) if isinstance(p, Polygon) else list(p.coords)
@@ -156,6 +164,7 @@ class PolygonDataModule(pl.LightningDataModule):
         self.n_range = conf["n_range"]
         self.radius_range = conf["radius_range"]
         self.tasks = tasks
+        self.transforms = conf["transforms"]
 
         self.batch_size = conf["batch_size"]
         self.n_batch_per_epoch = conf["n_batch_per_epoch"]
@@ -170,6 +179,7 @@ class PolygonDataModule(pl.LightningDataModule):
             y_min=self.y_min,
             y_max=self.y_max,
             tasks=self.tasks,
+            transforms=self.transforms,
             batch_size=self.batch_size,
             n_batch_per_epoch=self.n_batch_per_epoch
         )
@@ -181,6 +191,7 @@ class PolygonDataModule(pl.LightningDataModule):
             y_min=self.y_min,
             y_max=self.y_max,
             tasks=self.tasks,
+            transforms=self.transforms,
             batch_size=self.batch_size,
             n_batch_per_epoch=1
         )

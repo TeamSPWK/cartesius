@@ -51,9 +51,7 @@ class PolygonDataset(Dataset):
         # Compute labels for each task
         labels = [task.get_label(p) for task in self.tasks]
 
-        poly_coords = list(p.boundary.coords) if isinstance(p, Polygon) else list(p.coords)
-
-        return poly_coords, labels
+        return p, labels
 
     def _gen_poly(self, x_ctr, y_ctr, avg_radius, irregularity, spikeyness, n_vert):
         """Method taken from https://stackoverflow.com/a/25276331

@@ -1,4 +1,5 @@
 import torch
+from shapely.geometry import Polygon
 
 
 PAD_COORD = (0, 0)
@@ -50,12 +51,14 @@ class Tokenizer:
 
 class TransformerTokenizer(Tokenizer):
     def tokenize(self, polygons):
-        pad_size = max(len(p) for p in polygons)
+        poly_coords = [list(p.boundary.coords) if isinstance(p, Polygon) else list(p.coords) for p in polygons]
+        pad_size = max(len(p_coords) for p_coords in poly_coords)
+
         masks = []
         tokens = []
-        for poly in polygons:
-            m = [1 if i < len(poly) else 0 for i in range(pad_size)]
-            p = poly + [PAD_COORD for _ in range(pad_size - len(poly))]
+        for p_coords in poly_coords:
+            m = [1 if i < len(p_coords) else 0 for i in range(pad_size)]
+            p = p_coords + [PAD_COORD for _ in range(pad_size - len(p_coords))]
 
             masks.append(m)
             tokens.append(p)

@@ -1,9 +1,12 @@
 from math import isclose
 
 import pytest
-from shapely.geometry import box, Point, LineString
+from shapely.geometry import box
+from shapely.geometry import LineString
+from shapely.geometry import Point
 
-from cartesius.transforms import NormalizePositionTransform, NormalizeScaleTransform
+from cartesius.transforms import NormalizePositionTransform
+from cartesius.transforms import NormalizeScaleTransform
 
 
 @pytest.mark.parametrize("p", [
@@ -43,6 +46,6 @@ def test_norm_scale(p):
     p_min_x, p_min_y, *_ = p.bounds
     r_min_x, r_min_y, *_ = result.bounds
     assert p_min_x == r_min_x and p_min_y == r_min_y
-    if scale_size !=0 :
+    if scale_size != 0:
         scale_ratio = 1 / scale_size
-        assert isclose(result.area, p.area * scale_ratio ** 2)
+        assert isclose(result.area, p.area * scale_ratio**2)

@@ -11,7 +11,7 @@ def test_score_head():
 
     y = m(x)
 
-    (y - labels).sum().backward()       # Backward pass, to check gradient flow
+    (y - labels).sum().backward()  # Backward pass, to check gradient flow
     assert y.size() == (8,)
     assert x.grad is not None
 
@@ -24,6 +24,6 @@ def test_transformer():
 
     y = m(x, mask)
 
-    (y.sum(-1) - labels).sum().backward()       # Backward pass, to check gradient flow
+    (y.sum(-1) - labels).sum().backward()  # Backward pass, to check gradient flow
     assert y.size() == (8, 32)
     assert x.grad is not None

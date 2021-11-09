@@ -55,11 +55,13 @@ class Task:
 
 
 class GuessArea(Task):
+
     def get_label(self, polygon):
         return polygon.area
 
 
 class GuessPerimeter(Task):
+
     def get_label(self, polygon):
         return polygon.length
 

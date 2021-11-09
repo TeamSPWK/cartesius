@@ -3,6 +3,18 @@ from torch import nn
 
 
 class Transformer(nn.Module):
+    """Basic Transformer implementation for Cartesius benchmark.
+
+    Args:
+        d_model (int): Dimension for the Transformer Encoder Layer.
+        max_seq_len (int): Maximum sequence length.
+        n_heads (int): Number of attention heads for the Transformer Encoder Layer.
+        d_ff (int): Hidden size of the FF network in the Transformer Encoder Layer.
+        dropout (float): Dropout for the Transformer Encoder Layer.
+        activation (str): Activation function to use in the Transformer Encoder Layer.
+        n_layers (int): Number of layers in the Transformer Encoder.
+    """
+
     def __init__(self, d_model, max_seq_len, n_heads, d_ff, dropout, activation, n_layers):
         super().__init__()
 
@@ -18,7 +30,6 @@ class Transformer(nn.Module):
                                                     activation=activation,
                                                     batch_first=True)
         self.encoder = nn.TransformerEncoder(encoder_layers, n_layers)
-
 
     def forward(self, polygon, mask):
         batch_size, seq_len, _ = polygon.size()

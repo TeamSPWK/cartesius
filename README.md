@@ -68,7 +68,7 @@ python -m pytest -W ignore::DeprecationWarning
 Your code should be linted and properly formatted :
 
 ```bash
-isort . && yapf -ri . && pylint parka && pylint tests --disable=redefined-outer-name
+isort . && yapf -ri . && pylint cartesius && pylint tests --disable=redefined-outer-name
 ```
 
 ### Documentation

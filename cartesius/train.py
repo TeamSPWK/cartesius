@@ -1,17 +1,16 @@
-import os
-import sys
 import random
 
-import torch
-from torch import nn
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
+import torch
+from torch import nn
 
-from cartesius.utils import load_conf, create_tags
+from cartesius.data import PolygonDataModule
 from cartesius.models import create_model
 from cartesius.tasks import TASKS
-from cartesius.data import PolygonDataModule
+from cartesius.utils import create_tags
+from cartesius.utils import load_conf
 
 
 class PolygonEncoder(pl.LightningModule):
@@ -48,7 +47,7 @@ class PolygonEncoder(pl.LightningModule):
 
         return preds
 
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch, batch_idx):  # pylint: disable=unused-argument
         labels = batch.pop("labels")
 
         preds = self.forward(batch)
@@ -57,13 +56,13 @@ class PolygonEncoder(pl.LightningModule):
         for task_name, task, pred, label, s in zip(self.conf.tasks, self.tasks, preds, labels, self.tasks_scales):
             loss = task.get_loss_fn()(pred, label)
             self.log(f"task_losses/{task_name}", loss)
-            losses.append(s * loss)     # Scale the loss
+            losses.append(s * loss)  # Scale the loss
 
         loss = sum(losses)
         self.log("loss", loss)
         return loss
 
-    def validation_step(self, batch, batch_idx):
+    def validation_step(self, batch, batch_idx):  # pylint: disable=unused-argument
         labels = batch.pop("labels")
 
         preds = self.forward(batch)
@@ -72,13 +71,13 @@ class PolygonEncoder(pl.LightningModule):
         for task_name, task, pred, label, s in zip(self.conf.tasks, self.tasks, preds, labels, self.tasks_scales):
             loss = task.get_loss_fn()(pred, label)
             self.log(f"val_task_losses/{task_name}", loss)
-            losses.append(s * loss)     # Scale the loss
+            losses.append(s * loss)  # Scale the loss
 
         loss = sum(losses)
         self.log("val_loss", loss)
         return loss
 
-    def test_step(self, batch, batch_idx):
+    def test_step(self, batch, batch_idx):  # pylint: disable=unused-argument
         labels = batch.pop("labels")
 
         preds = self.forward(batch)
@@ -87,7 +86,7 @@ class PolygonEncoder(pl.LightningModule):
         for task_name, task, pred, label, s in zip(self.conf.tasks, self.tasks, preds, labels, self.tasks_scales):
             loss = task.get_loss_fn()(pred, label)
             self.log(f"test_task_losses/{task_name}", loss)
-            losses.append(s * loss)     # Scale the loss
+            losses.append(s * loss)  # Scale the loss
 
         loss = sum(losses)
         self.log("test_loss", loss)

@@ -1,29 +1,64 @@
-import math
-import random
-import json
-import pathlib
 from functools import partial
+import json
+import math
+import pathlib
+import random
 
-import torch
-from torch.utils.data import Dataset
-from torch.utils.data import DataLoader
-from shapely.geometry import Polygon
-from shapely.geometry import LineString
-from shapely.geometry import Point
-from shapely import wkt
 import numpy as np
 import pytorch_lightning as pl
+from shapely import wkt
+from shapely.geometry import LineString
+from shapely.geometry import Point
+from shapely.geometry import Polygon
+import torch
+from torch.utils.data import DataLoader
+from torch.utils.data import Dataset
 
-from cartesius.utils import save_polygon
-from cartesius.transforms import TRANSFORMS
 from cartesius.tokenizers import TOKENIZERS
-
+from cartesius.transforms import TRANSFORMS
 
 DATA_DIR = "data"
 
 
 class PolygonDataset(Dataset):
-    def __init__(self, n_range, radius_range, x_min=-100, x_max=100, y_min=-100, y_max=100, tasks=None, transforms=None, batch_size=64, n_batch_per_epoch=1000):
+    """Pytorch dataset generating random Polygon.
+
+    This dataset is used for training, as the data is randomly generated.
+
+    Args:
+        n_range (list): list of int, representing the possible choices for the number
+            of points used to generate a polygon.
+        radius_range (list): list of float, representing the possible choices for the
+            average radius of the generated polygon.
+        x_min (int, optional): Lower limit for the x-axis position of the center of the
+            polygon. Defaults to -100.
+        x_max (int, optional): Higher limit for the x-axis position of the center of the
+            polygon. Defaults to 100.
+        y_min (int, optional): Lower limit for the y-axis position of the center of the
+            polygon. Defaults to -100.
+        y_max (int, optional): Higher limit for the y-axis position of the center of the
+            polygon. Defaults to 100.
+        tasks (list, optional): list of Tasks. These tasks will be used to compute the
+            labels of each polygon. Defaults to None.
+        transforms (list, optional): list of Transforms to apply to the polygons after
+            they are generated and before the labels are computed. Defaults to None.
+        batch_size (int, optional): Size of the batch. Defaults to 64.
+        n_batch_per_epoch (int, optional): Number of batch per epoch to simulate. Since
+            the dataset is infinite (randomly generated), we can choose the size of each
+            epoch. Defaults to 1000.
+    """
+
+    def __init__(self,
+                 n_range,
+                 radius_range,
+                 x_min=-100,
+                 x_max=100,
+                 y_min=-100,
+                 y_max=100,
+                 tasks=None,
+                 transforms=None,
+                 batch_size=64,
+                 n_batch_per_epoch=1000):
         super().__init__()
 
         self.x_min = x_min
@@ -65,7 +100,7 @@ class PolygonDataset(Dataset):
         """Method taken from https://stackoverflow.com/a/25276331
 
         Start with the centre of the polygon at x_ctr, y_ctr, then creates the
-        polygon by sampling points on a circle around the centre. 
+        polygon by sampling points on a circle around the centre.
         Random noise is added by varying the angular spacing between sequential
         points, and by varying the radial distance of each point from the centre.
 
@@ -93,21 +128,21 @@ class PolygonDataset(Dataset):
         angle_steps = []
         lower = (2 * math.pi / n_vert) - irregularity
         upper = (2 * math.pi / n_vert) + irregularity
-        sum = 0
-        for i in range(n_vert) :
+        s = 0
+        for i in range(n_vert):
             tmp = random.uniform(lower, upper)
             angle_steps.append(tmp)
-            sum = sum + tmp
+            s = s + tmp
 
         # Normalize the steps so that point 0 and point n+1 are the same
-        k = sum / (2 * math.pi)
-        for i in range(n_vert) :
+        k = s / (2 * math.pi)
+        for i in range(n_vert):
             angle_steps[i] = angle_steps[i] / k
 
         # Now generate the points
         points = []
         angle = random.uniform(0, 2 * math.pi)
-        for i in range(n_vert) :
+        for i in range(n_vert):
             r_i = np.clip(random.gauss(avg_radius, spikeyness), 0, 2 * avg_radius)
             x = x_ctr + r_i * math.cos(angle)
             y = y_ctr + r_i * math.sin(angle)
@@ -124,6 +159,19 @@ class PolygonDataset(Dataset):
 
 
 class PolygonTestset(Dataset):
+    """Pytorch dataset reading polygons from a JSON file.
+
+    This dataset is used for validation and testing, reading the Polygon data from a
+    JSON file (since the data for validation and testing must be fixed).
+
+    Args:
+        datafile (str): Path of the JSON file containing the Polygon data
+        tasks (list, optional): list of Tasks. These tasks will be used to compute the
+            labels of each polygon. Defaults to None.
+        transforms (list, optional): list of Transforms to apply to the polygons after
+            they are generated and before the labels are computed. Defaults to None.
+    """
+
     def __init__(self, datafile, tasks=None, transforms=None):
         super().__init__()
 
@@ -134,11 +182,11 @@ class PolygonTestset(Dataset):
         # Try to load the data from local directory first
         try:
             local_datafile = pathlib.Path(__file__).parent.resolve() / DATA_DIR / datafile
-            with open(local_datafile, "r") as f:
+            with open(local_datafile, "r", encoding="UTF-8") as f:
                 data = json.load(f)
         except FileNotFoundError:
             # Then maybe the user provided a path from the working dir ? Try to load it directly
-            with open(datafile, "r") as f:
+            with open(datafile, "r", encoding="UTF-8") as f:
                 data = json.load(f)
 
         self.polygons = [wkt.loads(d) for d in data]
@@ -201,41 +249,33 @@ class PolygonDataModule(pl.LightningDataModule):
         self.n_workers = conf["n_workers"]
 
     def setup(self, stage=None):
-        self.poly_dataset = PolygonDataset(
-            n_range=self.n_range,
-            radius_range=self.radius_range,
-            x_min=self.x_min,
-            x_max=self.x_max,
-            y_min=self.y_min,
-            y_max=self.y_max,
-            tasks=self.tasks,
-            transforms=self.transforms,
-            batch_size=self.batch_size,
-            n_batch_per_epoch=self.n_batch_per_epoch
-        )
+        self.poly_dataset = PolygonDataset(n_range=self.n_range,
+                                           radius_range=self.radius_range,
+                                           x_min=self.x_min,
+                                           x_max=self.x_max,
+                                           y_min=self.y_min,
+                                           y_max=self.y_max,
+                                           tasks=self.tasks,
+                                           transforms=self.transforms,
+                                           batch_size=self.batch_size,
+                                           n_batch_per_epoch=self.n_batch_per_epoch)
         self.val_dataset = PolygonTestset(datafile=self.val_set_file, tasks=self.tasks, transforms=self.transforms)
         self.test_dataset = PolygonTestset(datafile=self.test_set_file, tasks=self.tasks, transforms=self.transforms)
 
     def train_dataloader(self):
-        return DataLoader(
-            self.poly_dataset,
-            batch_size=self.batch_size,
-            collate_fn=self.collate_fn,
-            num_workers=self.n_workers
-        )
+        return DataLoader(self.poly_dataset,
+                          batch_size=self.batch_size,
+                          collate_fn=self.collate_fn,
+                          num_workers=self.n_workers)
 
     def val_dataloader(self):
-        return DataLoader(
-            self.val_dataset,
-            batch_size=self.batch_size,
-            collate_fn=self.collate_fn,
-            num_workers=self.n_workers
-        )
+        return DataLoader(self.val_dataset,
+                          batch_size=self.batch_size,
+                          collate_fn=self.collate_fn,
+                          num_workers=self.n_workers)
 
     def test_dataloader(self):
-        return DataLoader(
-            self.test_dataset,
-            batch_size=self.batch_size,
-            collate_fn=self.collate_fn,
-            num_workers=self.n_workers
-        )
+        return DataLoader(self.test_dataset,
+                          batch_size=self.batch_size,
+                          collate_fn=self.collate_fn,
+                          num_workers=self.n_workers)

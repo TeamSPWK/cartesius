@@ -1,6 +1,5 @@
-import torch
 from shapely.geometry import Polygon
-
+import torch
 
 PAD_COORD = (0, 0)
 
@@ -50,7 +49,17 @@ class Tokenizer:
 
 
 class TransformerTokenizer(Tokenizer):
-    def __init__(self, max_seq_len, *args, **kwargs):
+    """Tokenizer for Transformer model.
+
+    This is a basic tokenizer, used with Transformer model. It just uses the coordinates
+    of the polygon and pad them appropriately.
+
+    Args:
+        max_seq_len (int): Maximum sequence length. An exception will be raised if you
+            try to tokenize a polygon with more points than this.
+    """
+
+    def __init__(self, max_seq_len, *args, **kwargs):  # pylint: disable=unused-argument
         self.max_seq_len = max_seq_len
 
     def tokenize(self, polygons):

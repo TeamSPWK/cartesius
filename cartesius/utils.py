@@ -2,11 +2,10 @@ import pathlib
 import sys
 
 import matplotlib.pyplot as plt
+from omegaconf import OmegaConf as omg
 from shapely.geometry import LineString
 from shapely.geometry import Point
 from shapely.geometry import Polygon
-from omegaconf import OmegaConf as omg
-
 
 CONFIG_DIR = "config"
 

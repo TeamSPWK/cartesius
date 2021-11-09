@@ -1,5 +1,7 @@
 import pytest
-from shapely.geometry import Polygon, LineString, Point
+from shapely.geometry import LineString
+from shapely.geometry import Point
+from shapely.geometry import Polygon
 
 from cartesius.tokenizers import TransformerTokenizer
 
@@ -44,4 +46,4 @@ def test_transformer_tokenizer_too_much_points():
     p = Point((0, 0)).buffer(1, resolution=64)
 
     with pytest.raises(RuntimeError):
-        result = tokenizer(p)
+        tokenizer(p)

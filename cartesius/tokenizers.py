@@ -50,9 +50,15 @@ class Tokenizer:
 
 
 class TransformerTokenizer(Tokenizer):
+    def __init__(self, max_seq_len):
+        self.max_seq_len = max_seq_len
+
     def tokenize(self, polygons):
         poly_coords = [list(p.boundary.coords) if isinstance(p, Polygon) else list(p.coords) for p in polygons]
         pad_size = max(len(p_coords) for p_coords in poly_coords)
+
+        if pad_size > self.max_seq_len:
+            raise RuntimeError(f"Polygons are too big to be tokenized ({pad_size} > {self.max_seq_len})")
 
         masks = []
         tokens = []

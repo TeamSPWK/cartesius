@@ -5,7 +5,7 @@ from cartesius.tokenizers import TransformerTokenizer
 
 
 def test_transformer_tokenizer_single_polygon():
-    tokenizer = TransformerTokenizer()
+    tokenizer = TransformerTokenizer(max_seq_len=256)
     p = Polygon([(0, 0), (0, 1), (1, 0), (0, 0)])
 
     result = tokenizer(p)
@@ -16,7 +16,7 @@ def test_transformer_tokenizer_single_polygon():
 
 @pytest.mark.parametrize("p", [LineString([(0, 0), (1, 1)]), Point((0, 0))])
 def test_transformer_tokenizer_single_not_polygon(p):
-    tokenizer = TransformerTokenizer()
+    tokenizer = TransformerTokenizer(max_seq_len=256)
 
     result = tokenizer(p)
 
@@ -25,7 +25,7 @@ def test_transformer_tokenizer_single_not_polygon(p):
 
 
 def test_transformer_tokenizer_batched_polygons():
-    tokenizer = TransformerTokenizer()
+    tokenizer = TransformerTokenizer(max_seq_len=256)
     p = [
         Polygon([(0, 0), (0, 1), (1, 0), (0, 0)]),
         Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)]),
@@ -37,3 +37,11 @@ def test_transformer_tokenizer_batched_polygons():
     assert result["polygon"][0].tolist() == [list(c) for c in p[0].boundary.coords] + [[0, 0]]
     assert result["mask"][1].tolist() == [True for _ in range(5)]
     assert result["polygon"][1].tolist() == [list(c) for c in p[1].boundary.coords]
+
+
+def test_transformer_tokenizer_too_much_points():
+    tokenizer = TransformerTokenizer(max_seq_len=256)
+    p = Point((0, 0)).buffer(1, resolution=64)
+
+    with pytest.raises(RuntimeError):
+        result = tokenizer(p)

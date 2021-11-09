@@ -50,7 +50,7 @@ class Tokenizer:
 
 
 class TransformerTokenizer(Tokenizer):
-    def __init__(self, max_seq_len):
+    def __init__(self, max_seq_len, *args, **kwargs):
         self.max_seq_len = max_seq_len
 
     def tokenize(self, polygons):

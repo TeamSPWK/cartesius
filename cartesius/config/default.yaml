@@ -7,9 +7,12 @@ project_name: "Cartesius"
 seed: null
 train: True
 test: True
+ckpt: null
 
 # Paths
 save_dir: "results"
+val_set_file: "valset.json"
+test_set_file: "testset.json"
 
 # Model
 model_name: "transformer"
@@ -28,6 +31,7 @@ task_dropout: 0.1
 
 # Training
 lr: 3e-5
+auto_lr_find: True
 batch_size: 64
 n_batch_per_epoch: 1000
 grad_clip: 40.0

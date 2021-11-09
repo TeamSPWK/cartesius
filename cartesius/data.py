@@ -1,5 +1,7 @@
 import math
 import random
+import json
+import pathlib
 from functools import partial
 
 import torch
@@ -8,6 +10,7 @@ from torch.utils.data import DataLoader
 from shapely.geometry import Polygon
 from shapely.geometry import LineString
 from shapely.geometry import Point
+from shapely import wkt
 import numpy as np
 import pytorch_lightning as pl
 
@@ -16,8 +19,13 @@ from cartesius.transforms import TRANSFORMS
 from cartesius.tokenizers import TOKENIZERS
 
 
+DATA_DIR = "data"
+
+
 class PolygonDataset(Dataset):
     def __init__(self, n_range, radius_range, x_min=-100, x_max=100, y_min=-100, y_max=100, tasks=None, transforms=None, batch_size=64, n_batch_per_epoch=1000):
+        super().__init__()
+
         self.x_min = x_min
         self.x_max = x_max
         self.y_min = y_min
@@ -115,6 +123,42 @@ class PolygonDataset(Dataset):
             return Polygon(points)
 
 
+class PolygonTestset(Dataset):
+    def __init__(self, datafile, tasks=None, transforms=None):
+        super().__init__()
+
+        self.tasks = tasks if tasks is not None else []
+        transforms = transforms if transforms is not None else []
+        self.transforms = [TRANSFORMS[tr] for tr in transforms]
+
+        # Try to load the data from local directory first
+        try:
+            local_datafile = pathlib.Path(__file__).parent.resolve() / DATA_DIR / datafile
+            with open(local_datafile, "r") as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            # Then maybe the user provided a path from the working dir ? Try to load it directly
+            with open(datafile, "r") as f:
+                data = json.load(f)
+
+        self.polygons = [wkt.loads(d) for d in data]
+
+    def __len__(self):
+        return len(self.polygons)
+
+    def __getitem__(self, idx):
+        p = self.polygons[idx]
+
+        # Apply transforms
+        for tr in self.transforms:
+            p = tr(p)
+
+        # Compute labels for each task
+        labels = [task.get_label(p) for task in self.tasks]
+
+        return p, labels
+
+
 def collate(samples, tokenizer):
     polygons = [s[0] for s in samples]
     labels = [s[1] for s in samples]
@@ -146,8 +190,10 @@ class PolygonDataModule(pl.LightningDataModule):
         self.radius_range = conf["radius_range"]
         self.tasks = tasks
         self.transforms = conf["transforms"]
+        self.val_set_file = conf["val_set_file"]
+        self.test_set_file = conf["test_set_file"]
 
-        self.tokenizer = TOKENIZERS[conf["tokenizer"]]()
+        self.tokenizer = TOKENIZERS[conf["tokenizer"]](**conf)
         self.collate_fn = partial(collate, tokenizer=self.tokenizer)
 
         self.batch_size = conf["batch_size"]
@@ -167,18 +213,8 @@ class PolygonDataModule(pl.LightningDataModule):
             batch_size=self.batch_size,
             n_batch_per_epoch=self.n_batch_per_epoch
         )
-        self.val_dataset = PolygonDataset(
-            n_range=self.n_range,
-            radius_range=self.radius_range,
-            x_min=self.x_min,
-            x_max=self.x_max,
-            y_min=self.y_min,
-            y_max=self.y_max,
-            tasks=self.tasks,
-            transforms=self.transforms,
-            batch_size=self.batch_size,
-            n_batch_per_epoch=1
-        )
+        self.val_dataset = PolygonTestset(datafile=self.val_set_file, tasks=self.tasks, transforms=self.transforms)
+        self.test_dataset = PolygonTestset(datafile=self.test_set_file, tasks=self.tasks, transforms=self.transforms)
 
     def train_dataloader(self):
         return DataLoader(
@@ -198,7 +234,7 @@ class PolygonDataModule(pl.LightningDataModule):
 
     def test_dataloader(self):
         return DataLoader(
-            self.val_dataset,
+            self.test_dataset,
             batch_size=self.batch_size,
             collate_fn=self.collate_fn,
             num_workers=self.n_workers

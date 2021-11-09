@@ -1,3 +1,4 @@
+import os
 import sys
 import random
 
@@ -76,8 +77,38 @@ class PolygonEncoder(pl.LightningModule):
         self.log("val_loss", loss)
         return loss
 
+    def test_step(self, batch, batch_idx):
+        labels = batch.pop("labels")
+
+        preds = self.forward(batch)
+
+        losses = []
+        for task_name, task, pred, label in zip(self.conf.tasks, self.tasks, preds, labels):
+            loss = task.get_loss_fn()(pred, label)
+            self.log(f"test_task_losses/{task_name}", loss)
+            losses.append(loss)
+
+        loss = sum(losses)
+        self.log("test_loss", loss)
+        return loss
+
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=(self.lr or self.learning_rate))
+
+
+def create_tags(conf):
+    """Function creating a list of tags (for wandb) from a configuration.
+
+    Args:
+        conf (omegaconf.OmegaConf): Configuration for this run.
+
+    Returns:
+        list: List of tags (str) corresponding to this configuration.
+    """
+    t = []
+    if conf.test and not conf.train:
+        t.append("test_only")
+    return t
 
 
 if __name__ == "__main__":
@@ -91,26 +122,30 @@ if __name__ == "__main__":
     # Resolve tasks
     tasks = [TASKS[t](conf) for t in conf.tasks]
 
+    model = PolygonEncoder(conf, tasks)
+    data = PolygonDataModule(conf, tasks)
+
+    wandb_logger = pl.loggers.WandbLogger(project=conf.project_name, config=conf, tags=create_tags(conf))
+    # wandb_logger.watch(model, log="all", log_graph=False)
+    mc = ModelCheckpoint(monitor="val_loss", mode="min", filename="{step}-{val_loss:.4f}")
+    trainer = pl.Trainer(
+        gpus=1,
+        logger=wandb_logger,
+        callbacks=[EarlyStopping(monitor="val_loss", mode="min", verbose=True), mc],
+        gradient_clip_val=conf.grad_clip,
+        max_time=conf.max_time,
+        auto_lr_find=conf.auto_lr_find,
+        default_root_dir=conf.save_dir,
+        num_sanity_val_steps=-1,
+    )
+
     if conf.train:
-        model = PolygonEncoder(conf, tasks)
-        data = PolygonDataModule(conf, tasks)
-
-        wandb_logger = pl.loggers.WandbLogger(project=conf.project_name, config=conf)
-        # wandb_logger.watch(model, log="all", log_graph=False)
-        mc = ModelCheckpoint(dirpath=conf.save_dir, monitor="val_loss", mode="min")
-        trainer = pl.Trainer(
-            gpus=1,
-            logger=wandb_logger,
-            callbacks=[EarlyStopping(monitor="val_loss", mode="min"), mc],
-            gradient_clip_val=conf.grad_clip,
-            max_time=conf.max_time,
-            auto_lr_find=True,
-        )
-
         trainer.tune(model, datamodule=data)
         trainer.fit(model, datamodule=data)
 
-        ckpt = mc.best_model_path
+        # Update the config to record the best checkpoint
+        wandb_logger.experiment.config["best_ckpt"] = mc.best_model_path
 
     if conf.test:
-        pass
+        ckpt = conf.ckpt or mc.best_model_path
+        trainer.test(model, datamodule=data, ckpt_path=ckpt)

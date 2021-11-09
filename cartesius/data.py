@@ -248,7 +248,7 @@ class PolygonDataModule(pl.LightningDataModule):
         self.n_batch_per_epoch = conf["n_batch_per_epoch"]
         self.n_workers = conf["n_workers"]
 
-    def setup(self, stage=None):
+    def setup(self, stage=None):  # pylint: disable=unused-argument
         self.poly_dataset = PolygonDataset(n_range=self.n_range,
                                            radius_range=self.radius_range,
                                            x_min=self.x_min,

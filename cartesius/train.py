@@ -8,7 +8,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
 
-from cartesius.utils import load_conf
+from cartesius.utils import load_conf, create_tags
 from cartesius.models import create_model
 from cartesius.tasks import TASKS
 from cartesius.data import PolygonDataModule
@@ -31,6 +31,7 @@ class PolygonEncoder(pl.LightningModule):
 
         self.conf = conf
         self.tasks = tasks
+        self.tasks_scales = conf["tasks_scales"]
 
         self.encoder = create_model(conf.model_name, conf)
         self.tasks_heads = nn.ModuleList([t.get_head() for t in self.tasks])
@@ -53,10 +54,10 @@ class PolygonEncoder(pl.LightningModule):
         preds = self.forward(batch)
 
         losses = []
-        for task_name, task, pred, label in zip(self.conf.tasks, self.tasks, preds, labels):
+        for task_name, task, pred, label, s in zip(self.conf.tasks, self.tasks, preds, labels, self.tasks_scales):
             loss = task.get_loss_fn()(pred, label)
             self.log(f"task_losses/{task_name}", loss)
-            losses.append(loss)
+            losses.append(s * loss)     # Scale the loss
 
         loss = sum(losses)
         self.log("loss", loss)
@@ -68,10 +69,10 @@ class PolygonEncoder(pl.LightningModule):
         preds = self.forward(batch)
 
         losses = []
-        for task_name, task, pred, label in zip(self.conf.tasks, self.tasks, preds, labels):
+        for task_name, task, pred, label, s in zip(self.conf.tasks, self.tasks, preds, labels, self.tasks_scales):
             loss = task.get_loss_fn()(pred, label)
             self.log(f"val_task_losses/{task_name}", loss)
-            losses.append(loss)
+            losses.append(s * loss)     # Scale the loss
 
         loss = sum(losses)
         self.log("val_loss", loss)
@@ -83,10 +84,10 @@ class PolygonEncoder(pl.LightningModule):
         preds = self.forward(batch)
 
         losses = []
-        for task_name, task, pred, label in zip(self.conf.tasks, self.tasks, preds, labels):
+        for task_name, task, pred, label, s in zip(self.conf.tasks, self.tasks, preds, labels, self.tasks_scales):
             loss = task.get_loss_fn()(pred, label)
             self.log(f"test_task_losses/{task_name}", loss)
-            losses.append(loss)
+            losses.append(s * loss)     # Scale the loss
 
         loss = sum(losses)
         self.log("test_loss", loss)
@@ -96,22 +97,10 @@ class PolygonEncoder(pl.LightningModule):
         return torch.optim.Adam(self.parameters(), lr=(self.lr or self.learning_rate))
 
 
-def create_tags(conf):
-    """Function creating a list of tags (for wandb) from a configuration.
-
-    Args:
-        conf (omegaconf.OmegaConf): Configuration for this run.
-
-    Returns:
-        list: List of tags (str) corresponding to this configuration.
+def main():
+    """Entry point of Cartesius for general training.
+    This function reads the configuration provided and run the training + testing.
     """
-    t = []
-    if conf.test and not conf.train:
-        t.append("test_only")
-    return t
-
-
-if __name__ == "__main__":
     conf = load_conf()
 
     # If no seed is set, generate one, and set the seed
@@ -149,3 +138,7 @@ if __name__ == "__main__":
     if conf.test:
         ckpt = conf.ckpt or mc.best_model_path
         trainer.test(model, datamodule=data, ckpt_path=ckpt)
+
+
+if __name__ == "__main__":
+    main()

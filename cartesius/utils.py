@@ -124,3 +124,18 @@ def load_conf():
     yaml_conf = load_yaml(yaml_file)
 
     return omg.merge(default_conf, yaml_conf, cli_conf)
+
+
+def create_tags(conf):
+    """Function creating a list of tags (for wandb) from a configuration.
+
+    Args:
+        conf (omegaconf.OmegaConf): Configuration for this run.
+
+    Returns:
+        list: List of tags (str) corresponding to this configuration.
+    """
+    t = []
+    if conf.test and not conf.train:
+        t.append("test_only")
+    return t

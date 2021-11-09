@@ -26,6 +26,7 @@ n_layers: 3
 
 # Tasks
 tasks: ["area", "perimeter"]
+tasks_scales: [100, 2]
 task_d_ff: 256
 task_dropout: 0.1
 

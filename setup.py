@@ -30,4 +30,5 @@ setuptools.setup(
     python_requires=">=3.6",
     install_requires=reqs,
     extras_require=extras_require,
+    entry_points={"console_scripts": ["cartesius=cartesius.train:main"]},
 )

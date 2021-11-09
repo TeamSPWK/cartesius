@@ -31,4 +31,5 @@ setuptools.setup(
     install_requires=reqs,
     extras_require=extras_require,
     entry_points={"console_scripts": ["cartesius=cartesius.train:main"]},
+    data_files=[("", ["config/*.yaml", "data/*.json"])],
 )

@@ -6,6 +6,8 @@ theme:
   name: material
   logo: "assets/logo_white.png"
   favicon: "assets/logo.png"
+  features:
+    - navigation.sections
   palette:
     - scheme: default
       primary: teal
@@ -32,6 +34,20 @@ markdown_extensions:
 
 nav:
   - Welcome: "index.md"
+  - "usage.md"
+  - "leaderboard.md"
+  - Models:
+    - "models/transformer.md"
+    - "models/contribute.md"
+  - Code Reference:
+    - "code_ref/data.md"
+    - "code_ref/tasks.md"
+    - "code_ref/tokenizers.md"
+    - "code_ref/models.md"
+    - "code_ref/modeling.md"
+    - "code_ref/train.md"
+    - "code_ref/utils.md"
+  - "": "gen_handcraft_poly.md"
 
 plugins:
   - search

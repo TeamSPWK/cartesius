@@ -7,10 +7,10 @@ project_name: "Cartesius"
 seed: null
 train: True
 test: True
-ckpt: null
 
 # Paths
 save_dir: "results"
+ckpt: null
 val_set_file: "valset.json"
 test_set_file: "testset.json"
 

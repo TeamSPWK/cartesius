@@ -55,12 +55,16 @@ class Task:
 
 
 class GuessArea(Task):
+    """Task predicting the area of the polygon.
+    """
 
     def get_label(self, polygon):
         return polygon.area
 
 
 class GuessPerimeter(Task):
+    """Task predicting the perimeter of the polygon.
+    """
 
     def get_label(self, polygon):
         return polygon.length

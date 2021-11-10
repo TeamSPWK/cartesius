@@ -9,9 +9,7 @@
 <p align="center">
   <a href="#description">Description</a> •
   <a href="#install">Install</a> •
-  <a href="#training">Training</a> •
-  <a href="#testing">Testing</a> •
-  <a href="#serving">Serving</a> •
+  <a href="#usage">Usage</a> •
   <a href="https://spwk-cartesius.readthedocs-hosted.com/en/latest/">Documentation</a> •
   <a href="#contribute">Contribute</a>
   
@@ -24,32 +22,51 @@ This repository contains the code for training & benchmarking neural networks on
 
 <h2 align="center">Install</h2>
 
-Clone this repository locally and install it:
+Install `cartesius` by running :
 
-```console
+```bash
+export GH_PAT="<your_github_pat_here>"
+pip install git+https://$GH_PAT@github.com/TeamSPWK/cartesius.git
+```
+
+---
+
+For development, you can install it locally by first cloning the repository :
+
+```bash
 export GH_PAT="<your_github_pat_here>"
 git clone https://$GH_PAT@github.com/TeamSPWK/cartesius.git
 cd cartesius
 pip install -e .
 ```
 
-If you are only interested in serving, you can install it directly with `pip` :
-```console
-export GH_PAT="<your_github_pat_here>"
-pip install git+https://$GH_PAT@github.com/TeamSPWK/cartesius.git
+<h2 align="center">Usage</h2>
+
+Just run the command `cartesius`, it will train and test a model with the default configuration (located in `cartesius/config/default.yaml`).
+
+---
+
+You can change the configuration by specifying a different configuration file :
+
+```bash
+cartesius config=transformer.yaml
 ```
 
-<h2 align="center">Training</h2>
+---
 
-🚧 WIP
+You can also change each value of the configuration independently, directly from the command line :
 
-<h2 align="center">Testing</h2>
+```bash
+cartesius seed=666 activation=relu
+```
 
-🚧 WIP
+---
 
-<h2 align="center">Serving</h2>
+You can test a specific checkpoint by running :
 
-🚧 WIP
+```bash
+cartesius train=False test=True ckpt=<path/to/my/model.ckpt>
+```
 
 <h2 align="center">Contribute</h2>
 

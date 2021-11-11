@@ -4,7 +4,7 @@
 <p align="center"><a href="https://github.com/TeamSPWK/parka/releases"><img src="https://img.shields.io/badge/release-v0.0-blue" alt="release state" /></a>
 <a href="https://github.com/TeamSPWK/cartesius/actions/workflows/pytest.yml"><img src="https://github.com/TeamSPWK/cartesius/actions/workflows/pytest.yml/badge.svg" alt="Test status" /></a>
 <a href="https://github.com/TeamSPWK/cartesius/actions/workflows/lint.yml"><img src="https://github.com/TeamSPWK/cartesius/actions/workflows/lint.yml/badge.svg" alt="Lint status" /></a>
-<a href="https://spwk-cartesius.readthedocs-hosted.com/en/latest/?badge=latest"><img src="https://readthedocs.com/projects/spwk-cartesius/badge/?version=latest&token=4f00a10a35b095a9d3d6284b9e16c39dee69d162b74190094b88d0583c412d0a" alt="Documentation status" /></a>
+<a href="https://spwk-cartesius.readthedocs-hosted.com/en/latest/?badge=latest"><img src="https://readthedocs.com/projects/spwk-cartesius/badge/?version=latest&token=23bd7924365dc7d2aecf8f3af3bdd2bfd045d1a17674a28bf3d857c3a6afef97" alt="Documentation status" /></a>
 
 <p align="center">
   <a href="#description">Description</a> •

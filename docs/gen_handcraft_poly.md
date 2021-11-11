@@ -14,8 +14,10 @@ from shapely.geometry import LineString
 from shapely.geometry import Point
 from shapely.geometry import Polygon
 
-MAX_BOUND = 10000
+MAX_BOUND = 150
 MIN_BOUND = -MAX_BOUND
+MAX_SCALE = 160
+MIN_SCALE = 0.2
 ANGLE = 360
 FILE = "cartesius/data/testset.json"
 
@@ -37,12 +39,12 @@ def move_bot_left(p):
 
 
 def scale_big(p):
-    s = random.random() * MAX_BOUND
+    s = random.uniform(1, MAX_SCALE)
     return scale(p, s, s)
 
 
 def scale_small(p):
-    s = random.random()
+    s = random.uniform(MIN_SCALE, 1)
     return scale(p, s, s)
 
 

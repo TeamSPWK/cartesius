@@ -26,18 +26,14 @@ class PolygonDataset(Dataset):
     This dataset is used for training, as the data is randomly generated.
 
     Args:
+        x_range (list): List of 2 elements representing the range from where to
+            draw the polygon center (x-axis).
+        y_range (list): List of 2 elements representing the range from where to
+            draw the polygon center (y-axis).
+        avg_radius_range (list): list of float, representing the possible choices
+            for the average radius of the generated polygon.
         n_range (list): list of int, representing the possible choices for the number
             of points used to generate a polygon.
-        radius_range (list): list of float, representing the possible choices for the
-            average radius of the generated polygon.
-        x_min (int, optional): Lower limit for the x-axis position of the center of the
-            polygon. Defaults to -100.
-        x_max (int, optional): Higher limit for the x-axis position of the center of the
-            polygon. Defaults to 100.
-        y_min (int, optional): Lower limit for the y-axis position of the center of the
-            polygon. Defaults to -100.
-        y_max (int, optional): Higher limit for the y-axis position of the center of the
-            polygon. Defaults to 100.
         tasks (list, optional): list of Tasks. These tasks will be used to compute the
             labels of each polygon. Defaults to None.
         transforms (list, optional): list of Transforms to apply to the polygons after
@@ -49,24 +45,20 @@ class PolygonDataset(Dataset):
     """
 
     def __init__(self,
+                 x_range,
+                 y_range,
+                 avg_radius_range,
                  n_range,
-                 radius_range,
-                 x_min=-100,
-                 x_max=100,
-                 y_min=-100,
-                 y_max=100,
                  tasks=None,
                  transforms=None,
                  batch_size=64,
                  n_batch_per_epoch=1000):
         super().__init__()
 
-        self.x_min = x_min
-        self.x_max = x_max
-        self.y_min = y_min
-        self.y_max = y_max
+        self.x_range = x_range
+        self.y_range = y_range
+        self.avg_radius_range = avg_radius_range
         self.n_range = n_range
-        self.radius_range = radius_range
         self.tasks = tasks if tasks is not None else []
         transforms = transforms if transforms is not None else []
         self.transforms = [TRANSFORMS[tr] for tr in transforms]
@@ -78,14 +70,15 @@ class PolygonDataset(Dataset):
         return self.batch_size * self.n_batch_per_epoch  # Anyway, infinite dataset
 
     def __getitem__(self, idx):
-        x_ctr = random.randint(self.x_min, self.x_max)
-        y_ctr = random.randint(self.y_min, self.y_max)
-        radius = random.choice(self.radius_range)
+        # Randomly pick parameters for polygon generation
+        x_ctr = random.uniform(*self.x_range)
+        y_ctr = random.uniform(*self.y_range)
+        avg_radius = random.choice(self.avg_radius_range)
         irregularity = random.random()
         spikeyness = random.random()
         n = random.choice(self.n_range)
 
-        p = self._gen_poly(x_ctr, y_ctr, radius, irregularity, spikeyness, n)
+        p = self._gen_poly(x_ctr, y_ctr, avg_radius, irregularity, spikeyness, n)
 
         # Apply transforms
         for tr in self.transforms:
@@ -230,12 +223,10 @@ class PolygonDataModule(pl.LightningDataModule):
     def __init__(self, conf, tasks):
         super().__init__()
 
-        self.x_min = conf["x_min"]
-        self.x_max = conf["x_max"]
-        self.y_min = conf["y_min"]
-        self.y_max = conf["y_max"]
+        self.x_range = conf["x_range"]
+        self.y_range = conf["y_range"]
+        self.avg_radius_range = conf["avg_radius_range"]
         self.n_range = conf["n_range"]
-        self.radius_range = conf["radius_range"]
         self.tasks = tasks
         self.transforms = conf["transforms"]
         self.val_set_file = conf["val_set_file"]
@@ -249,12 +240,10 @@ class PolygonDataModule(pl.LightningDataModule):
         self.n_workers = conf["n_workers"]
 
     def setup(self, stage=None):  # pylint: disable=unused-argument
-        self.poly_dataset = PolygonDataset(n_range=self.n_range,
-                                           radius_range=self.radius_range,
-                                           x_min=self.x_min,
-                                           x_max=self.x_max,
-                                           y_min=self.y_min,
-                                           y_max=self.y_max,
+        self.poly_dataset = PolygonDataset(x_range=self.x_range,
+                                           y_range=self.y_range,
+                                           avg_radius_range=self.avg_radius_range,
+                                           n_range=self.n_range,
                                            tasks=self.tasks,
                                            transforms=self.transforms,
                                            batch_size=self.batch_size,

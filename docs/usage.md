@@ -157,17 +157,13 @@ List of tasks currently implemented :
 
 ### Polygon generation
 
-**`x_min`** : Lower end of the polygon's center's x-axis range.
+**`x_range`** : Allowed range for the polygon center (x-axis).
 
-**`x_max`** : Higher end of the polygon's center's x-axis range.
-
-**`y_min`** : Lower end of the polygon's center's y-axis range.
-
-**`y_max`** : Higher end of the polygon's center's y-axis range.
+**`y_range`** : Allowed range for the polygon center (y-axis).
 
 **`n_range`** : Possible choices for the number of points generated in the polygon.
 
-**`radius_range`** : Possible choices for the average radius of the generated polygon.
+**`avg_radius_range`** : Possible choices for the average radius of the generated polygon.
 
 ### Data handling
  

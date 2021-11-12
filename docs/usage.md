@@ -76,12 +76,16 @@ The validation dataset is exactly like the test dataset, but with different (arb
 
 ## Tasks
 
-Models are trained and evaluated on several tasks. The goal is to get good representation of the input polygon, good enough to properly predict the labels of all task.
+Models are trained and evaluated on several tasks. The goal is to get good representation of the input polygon, good enough to properly predict the labels of all tasks.
 
 List of tasks currently implemented :
 
 * **`area`** : Predict the area of the polygon.
 * **`perimeter`** : Predict the perimeter of the polygon.
+* **`size`** : Predict the width and the height of the polygon.
+* **`concavity`** : Predict the "concavity" of the polygon. Concavity is defined as the area of the polygon divided by the area of its convex hull. It represents "how much concave a polygon is".
+* **`min_clear`** : Predict the minimum clearance of the polygon. The minimum clearance is the smallest distance by which a node should be moved to produce an invalid geometry.
+* **`centroid`** : Predict the x and y coordinates of the centroid of the polygon.
 
 ## Configuration
 

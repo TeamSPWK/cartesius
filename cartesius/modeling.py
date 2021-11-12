@@ -9,13 +9,14 @@ class ScoreHead(nn.Module):
         d_in (int): Input dimension.
         d_hid (int): Hidden dimension.
         dropout (float): Dropout rate.
+        n (int, optional): output dimension. Default to 1.
     """
 
-    def __init__(self, d_in, d_hid, dropout):
+    def __init__(self, d_in, d_hid, dropout, n=1):
         super().__init__()
         self.dense = nn.Linear(d_in, d_hid)
         self.dropout = nn.Dropout(p=dropout)
-        self.out_proj = nn.Linear(d_hid, 1)
+        self.out_proj = nn.Linear(d_hid, n)
 
     def forward(self, x):
         x = self.dropout(x)

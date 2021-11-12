@@ -25,8 +25,8 @@ activation: "gelu"
 n_layers: 3
 
 # Tasks
-tasks: ["area", "perimeter", "width", "height", "concavity", "min_clear"]
-tasks_scales: [100, 1, 35, 35, 20, 20]
+tasks: ["area", "perimeter", "width", "height", "concavity", "min_clear", "centroid"]
+tasks_scales: [100, 1, 35, 35, 20, 20, 50]
 task_d_ff: 256
 task_dropout: 0.1
 

@@ -119,6 +119,17 @@ class GuessMinimumClearance(Task):
             return 0
 
 
+class GuessCentroid(Task):
+    """Task predicting the centroid of the polygon.
+    """
+
+    def get_label(self, polygon):
+        return polygon.centroid.coords[0]
+
+    def get_head(self):
+        return ScoreHead(self.d_in, self.d_hid, self.dropout, 2)
+
+
 TASKS = {
     "area": GuessArea,
     "perimeter": GuessPerimeter,
@@ -126,4 +137,5 @@ TASKS = {
     "height": GuessHeight,
     "concavity": GuessConcavity,
     "min_clear": GuessMinimumClearance,
+    "centroid": GuessCentroid,
 }

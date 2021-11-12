@@ -70,22 +70,16 @@ class GuessPerimeter(Task):
         return polygon.length
 
 
-class GuessWidth(Task):
-    """Task predicting the width of the polygon.
+class GuessSize(Task):
+    """Task predicting the size (width + height) of the polygon.
     """
 
     def get_label(self, polygon):
-        x_min, _, x_max, _ = polygon.bounds
-        return x_max - x_min
+        x_min, y_min, x_max, y_max = polygon.bounds
+        return x_max - x_min, y_max - y_min
 
-
-class GuessHeight(Task):
-    """Task predicting the height of the polygon.
-    """
-
-    def get_label(self, polygon):
-        _, y_min, _, y_max = polygon.bounds
-        return y_max - y_min
+    def get_head(self):
+        return ScoreHead(self.d_in, self.d_hid, self.dropout, 2)
 
 
 class GuessConcavity(Task):
@@ -133,8 +127,7 @@ class GuessCentroid(Task):
 TASKS = {
     "area": GuessArea,
     "perimeter": GuessPerimeter,
-    "width": GuessWidth,
-    "height": GuessHeight,
+    "size": GuessSize,
     "concavity": GuessConcavity,
     "min_clear": GuessMinimumClearance,
     "centroid": GuessCentroid,

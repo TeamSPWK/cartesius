@@ -70,7 +70,60 @@ class GuessPerimeter(Task):
         return polygon.length
 
 
+class GuessWidth(Task):
+    """Task predicting the width of the polygon.
+    """
+
+    def get_label(self, polygon):
+        x_min, _, x_max, _ = polygon.bounds
+        return x_max - x_min
+
+
+class GuessHeight(Task):
+    """Task predicting the height of the polygon.
+    """
+
+    def get_label(self, polygon):
+        _, y_min, _, y_max = polygon.bounds
+        return y_max - y_min
+
+
+class GuessConcavity(Task):
+    """Task predicting the concavity of the polygon.
+
+    Concavity represents how much concave a polygon is. It's computed as the area
+    of the current polygon divided by the area of its convex hull.
+    """
+
+    def get_label(self, polygon):
+        convex_p = polygon.convex_hull
+
+        if convex_p.area == 0:
+            return 1
+        else:
+            return polygon.area / convex_p.area
+
+
+class GuessMinimumClearance(Task):
+    """Task predicting the minimum clearance of the polygon.
+
+    The minimum clearance is the smallest distance by which a node could be moved
+    to produce an invalid geometry.
+    """
+
+    def get_label(self, polygon):
+        c = polygon.minimum_clearance
+        if c < float("inf"):
+            return c
+        else:
+            return 0
+
+
 TASKS = {
     "area": GuessArea,
     "perimeter": GuessPerimeter,
+    "width": GuessWidth,
+    "height": GuessHeight,
+    "concavity": GuessConcavity,
+    "min_clear": GuessMinimumClearance,
 }

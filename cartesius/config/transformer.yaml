@@ -1,0 +1,17 @@
+# Metadata
+parent_config: "default.yaml"
+description: "Best configuration to train a basic Transformer."
+
+# Model
+d_model: 64
+n_heads: 16
+d_ff: 512
+n_layers: 6
+
+# Tasks
+task_dropout: 0
+
+# Training
+lr: 5e-4
+auto_lr_find: False
+n_batch_per_epoch: 10000

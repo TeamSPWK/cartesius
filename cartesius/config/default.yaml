@@ -32,7 +32,7 @@ task_dropout: 0.1
 
 # Training
 lr: 3e-4
-auto_lr_find: False
+auto_lr_find: True
 batch_size: 64
 n_batch_per_epoch: 1000
 grad_clip: 40.0

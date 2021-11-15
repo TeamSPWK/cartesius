@@ -60,8 +60,7 @@ class PolygonDataset(Dataset):
         self.avg_radius_range = avg_radius_range
         self.n_range = n_range
         self.tasks = tasks if tasks is not None else []
-        transforms = transforms if transforms is not None else []
-        self.transforms = [TRANSFORMS[tr] for tr in transforms]
+        self.transforms = transforms if transforms is not None else []
 
         self.batch_size = batch_size
         self.n_batch_per_epoch = n_batch_per_epoch
@@ -169,8 +168,7 @@ class PolygonTestset(Dataset):
         super().__init__()
 
         self.tasks = tasks if tasks is not None else []
-        transforms = transforms if transforms is not None else []
-        self.transforms = [TRANSFORMS[tr] for tr in transforms]
+        self.transforms = transforms if transforms is not None else []
 
         # Try to load the data from local directory first
         try:
@@ -228,7 +226,7 @@ class PolygonDataModule(pl.LightningDataModule):
         self.avg_radius_range = conf["avg_radius_range"]
         self.n_range = conf["n_range"]
         self.tasks = tasks
-        self.transforms = conf["transforms"]
+        self.transforms = [TRANSFORMS[tr](conf) for tr in conf["transforms"]]
         self.val_set_file = conf["val_set_file"]
         self.test_set_file = conf["test_set_file"]
 

@@ -8,7 +8,6 @@ try:
 except ImportError:
     pass
 
-
 PAD_COORD = (0, 0)
 
 
@@ -71,6 +70,8 @@ class TransformerTokenizer(Tokenizer):
     """
 
     def __init__(self, max_seq_len, *args, **kwargs):  # pylint: disable=unused-argument
+        super().__init__()
+
         self.max_seq_len = max_seq_len
 
     def tokenize(self, polygons):

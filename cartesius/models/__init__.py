@@ -1,5 +1,5 @@
-from .transformer import Transformer
 from .geometric import Geometric
+from .transformer import Transformer
 
 
 def create_model(model_name, conf):

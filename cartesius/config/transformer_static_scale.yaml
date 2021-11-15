@@ -1,0 +1,6 @@
+# Metadata
+parent_config: "transformer.yaml"
+description: "Transformer configuration, but use static scale instead of dynamic scale."
+
+# Data handling
+transforms: ["norm_pos", "norm_static_scale"]

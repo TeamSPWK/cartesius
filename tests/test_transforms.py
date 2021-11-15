@@ -7,6 +7,7 @@ from shapely.geometry import Point
 
 from cartesius.transforms import NormalizePositionTransform
 from cartesius.transforms import NormalizeScaleTransform
+from cartesius.transforms import NormalizeScaleStaticTransform
 
 
 @pytest.mark.parametrize("p", [
@@ -49,3 +50,23 @@ def test_norm_scale(p):
     if scale_size != 0:
         scale_ratio = 1 / scale_size
         assert isclose(result.area, p.area * scale_ratio**2)
+
+
+@pytest.mark.parametrize("p", [
+    box(1, 1, 10, 10),
+    box(1, 1, 10, 5),
+    box(1, 1, 5, 10),
+    Point((1, 1)),
+    LineString([(1, 1), (10, 10)]),
+    box(1, 1, 1.2, 1.1),
+])
+def test_norm_static_scale(p):
+    transfo = NormalizeScaleStaticTransform({"avg_radius_range": [1, 2, 5]})
+
+    result = transfo(p)
+
+    p_min_x, p_min_y, *_ = p.bounds
+    r_min_x, r_min_y, *_ = result.bounds
+    assert p_min_x == r_min_x and p_min_y == r_min_y
+    scale_ratio = 0.05
+    assert isclose(result.area, p.area * scale_ratio**2)

@@ -66,7 +66,7 @@ class NormalizeScaleStaticTransform(Transform):
     """
 
     def __call__(self, polygon):
-        scale_size = max(self.config.avg_radius_range) * 4
+        scale_size = max(self.config["avg_radius_range"]) * 4
 
         min_x, min_y, *_ = polygon.bounds
         ref = Point(min_x, min_y)

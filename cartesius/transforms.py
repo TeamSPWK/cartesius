@@ -10,6 +10,7 @@ class Transform:
     Args:
         config (omegaconf.OmegaConf): Configuration.
     """
+
     def __init__(self, config):
         self.config = config
 
@@ -75,4 +76,8 @@ class NormalizeScaleStaticTransform(Transform):
         return scale(polygon, xfact=scale_ratio, yfact=scale_ratio, origin=ref)
 
 
-TRANSFORMS = {"norm_pos": NormalizePositionTransform, "norm_scale": NormalizeScaleTransform, "norm_static_scale": NormalizeScaleStaticTransform}
+TRANSFORMS = {
+    "norm_pos": NormalizePositionTransform,
+    "norm_scale": NormalizeScaleTransform,
+    "norm_static_scale": NormalizeScaleStaticTransform
+}

@@ -6,8 +6,8 @@ from shapely.geometry import LineString
 from shapely.geometry import Point
 
 from cartesius.transforms import NormalizePositionTransform
-from cartesius.transforms import NormalizeScaleTransform
 from cartesius.transforms import NormalizeScaleStaticTransform
+from cartesius.transforms import NormalizeScaleTransform
 
 
 @pytest.mark.parametrize("p", [

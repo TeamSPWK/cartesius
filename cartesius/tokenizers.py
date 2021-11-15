@@ -120,7 +120,7 @@ class GraphTokenizer(Tokenizer):
                 c = p.coords
                 if len(c) == 1:
                     # Single node (Point). In order to avoid error, link it to itself
-                    e = torch.zeros((1, 2))
+                    e = torch.zeros((2, 1))
                 else:
                     # Don't connect the last node to the first one
                     e = torch.cat([(torch.eye(2, dtype=torch.long) + i) % len(c) for i in range(len(c) - 1)], dim=-1)

@@ -40,7 +40,10 @@ class PolygonEncoder(pl.LightningModule):
 
     def forward(self, x):
         # Encode polygon features
-        features = self.encoder(polygon=x["polygon"], mask=x["mask"])
+        if isinstance(x, dict):
+            features = self.encoder(**x)
+        else:
+            features = self.encoder(x)
 
         # Extract the predictions for each task
         preds = [th(features) for th in self.tasks_heads]

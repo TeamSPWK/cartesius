@@ -134,7 +134,7 @@ def create_tags(conf):
     Returns:
         list: List of tags (str) corresponding to this configuration.
     """
-    t = []
+    t = [conf.model_name]
     if conf.test and not conf.train:
         t.append("test_only")
     return t

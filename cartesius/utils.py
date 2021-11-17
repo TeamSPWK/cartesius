@@ -3,11 +3,13 @@ import sys
 
 import matplotlib.pyplot as plt
 from omegaconf import OmegaConf as omg
+import torch
 from shapely.geometry import LineString
 from shapely.geometry import Point
 from shapely.geometry import Polygon
 
 CONFIG_DIR = "config"
+ENCODER_KEY = "encoder."
 
 
 def print_polygon(poly, *args, **kwargs):
@@ -138,3 +140,17 @@ def create_tags(conf):
     if conf.test and not conf.train:
         t.append("test_only")
     return t
+
+
+def load_ckpt_state_dict(ckpt):
+    """Small function loading specific part of the state dict of a checkpoint, to use
+    the encoder part only in downstream tasks.
+
+    Args:
+        ckpt (str): Path to the checkpoint to load.
+
+    Returns:
+        dict: State dict of the encoder model used.
+    """
+    state_dict = torch.load(ckpt)["state_dict"]
+    return {k[len(ENCODER_KEY):]: v for k, v in state_dict.items() if k.startswith(ENCODER_KEY)}

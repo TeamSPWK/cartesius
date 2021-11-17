@@ -101,12 +101,8 @@ class GraphTokenizer(Tokenizer):
 
     This Tokenizer ensure the coordinates of the polygons are correctly batched,
     to be readable by a Graph-based model. Graph-based models have a specific way
-    to batch data together, more information here :
-    https://pytorch-geometric.readthedocs.io/en/latest/notes/batching.html
-
-    Args:
-        max_seq_len (int): Maximum sequence length. An exception will be raised if you
-            try to tokenize a polygon with more points than this.
+    to batch data together, more information
+    [here](https://pytorch-geometric.readthedocs.io/en/latest/notes/batching.html)
     """
 
     def tokenize(self, polygons):

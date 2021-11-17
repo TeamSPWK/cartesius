@@ -17,7 +17,6 @@ from torch.utils.data import Dataset
 from cartesius.tokenizers import TOKENIZERS
 from cartesius.transforms import TRANSFORMS
 
-
 DATA_DIR = "data"
 
 
@@ -32,6 +31,7 @@ def extract_bs(self, batch):
         batch_size = 1
     self.batch_size = batch_size
     return batch_size
+
 
 pl.trainer.connectors.logger_connector.result.ResultCollection.extract_batch_size = extract_bs
 

@@ -1,8 +1,8 @@
 import torch
 
 from cartesius.modeling import ScoreHead
-from cartesius.models import Transformer
 from cartesius.models import Geometric
+from cartesius.models import Transformer
 
 
 def test_score_head():

@@ -9,7 +9,7 @@ extras_require = {
     "docs": ["mkdocs-material==7.3.*", "mkdocstrings==0.16.*"],
     "tests": ["pytest==6.2.*"],
     "lint": ["isort==5.10.*", "yapf==0.31.*", "pylint==2.11.*"],
-    "graph": ["torch-scatter==2.0.*", "torch-sparse==0.6.*", "torch-geometric==2.0.*"]
+    "graph": ["torch-geometric==2.0.*"]
 }
 extras_require["all"] = sum(extras_require.values(), [])
 extras_require["dev"] = extras_require["docs"] + extras_require["tests"] + extras_require["lint"]

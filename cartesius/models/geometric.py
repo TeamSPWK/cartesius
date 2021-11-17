@@ -28,6 +28,6 @@ class Geometric(nn.Module):
                                     out_channels=d_model,
                                     dropout=dropout)
 
-    def forward(self, graph):
-        hidden = self.geom_model(graph.x, graph.edge_index)
-        return global_mean_pool(hidden, graph.batch)
+    def forward(self, x, edge_index, batch_index):
+        hidden = self.geom_model(x, edge_index)
+        return global_mean_pool(hidden, batch_index)

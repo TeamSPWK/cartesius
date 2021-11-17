@@ -128,7 +128,12 @@ class GraphTokenizer(Tokenizer):
             x = torch.tensor(c)
             p_data.append(Data(x=x, edge_index=e))
 
-        return Batch.from_data_list(p_data)
+        b = Batch.from_data_list(p_data)
+        return {
+            "x": b.x,
+            "edge_index": b.edge_index,
+            "batch_index": b.batch,
+        }
 
 
 TOKENIZERS = {

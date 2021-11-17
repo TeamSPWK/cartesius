@@ -17,7 +17,23 @@ from torch.utils.data import Dataset
 from cartesius.tokenizers import TOKENIZERS
 from cartesius.transforms import TRANSFORMS
 
+
 DATA_DIR = "data"
+
+
+# Monkey-patch `extract_batch_size` to not raise warning from weird tensor sizes
+def extract_bs(self, batch):
+    try:
+        if "labels" in batch:
+            batch_size = batch["labels"][0].size(0)
+        else:
+            batch_size = pl.utilities.data.extract_batch_size(batch)
+    except RecursionError:
+        batch_size = 1
+    self.batch_size = batch_size
+    return batch_size
+
+pl.trainer.connectors.logger_connector.result.ResultCollection.extract_batch_size = extract_bs
 
 
 class PolygonDataset(Dataset):

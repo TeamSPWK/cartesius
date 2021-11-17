@@ -38,6 +38,7 @@ nav:
   - "leaderboard.md"
   - Models:
     - "models/transformer.md"
+    - "models/graph.md"
     - "models/contribute.md"
   - Code Reference:
     - "code_ref/data.md"

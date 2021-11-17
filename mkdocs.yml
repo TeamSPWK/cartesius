@@ -36,6 +36,7 @@ nav:
   - Welcome: "index.md"
   - "usage.md"
   - "leaderboard.md"
+  - "downstream.md"
   - Models:
     - "models/transformer.md"
     - "models/graph.md"

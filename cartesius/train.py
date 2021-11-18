@@ -40,7 +40,7 @@ class PolygonEncoder(pl.LightningModule):
 
     def forward(self, x):
         # Encode polygon features
-        features = self.encoder(polygon=x["polygon"], mask=x["mask"])
+        features = self.encoder(**x)
 
         # Extract the predictions for each task
         preds = [th(features) for th in self.tasks_heads]
@@ -64,7 +64,6 @@ class PolygonEncoder(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):  # pylint: disable=unused-argument
         labels = batch.pop("labels")
-
         preds = self.forward(batch)
 
         losses = []

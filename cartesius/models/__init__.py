@@ -1,3 +1,4 @@
+from .geometric import Geometric
 from .transformer import Transformer
 
 
@@ -10,6 +11,13 @@ def create_model(model_name, conf):
             d_ff=conf["d_ff"],
             dropout=conf["dropout"],
             activation=conf["activation"],
+            n_layers=conf["n_layers"],
+        )
+    elif model_name == "graph":
+        return Geometric(
+            d_model=conf["d_model"],
+            d_ff=conf["d_ff"],
+            dropout=conf["dropout"],
             n_layers=conf["n_layers"],
         )
     else:

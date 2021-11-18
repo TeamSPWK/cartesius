@@ -64,6 +64,8 @@ List of extra dependencies :
 * **`tests`** : Dependencies for running unit-tests.
 * **`lint`** : Dependencies for running linters & formatters.
 * **`dev`** : `docs` + `tests` + `lint`.
+* **`graph`** : Dependencies for graph-based models.  
+_Note that you need to install `torch-scatter` and `torch-sparse` manually. See [Graph-based : Installation](models/graph.md#installation) for more details._
 * **`all`** : All extra dependencies.
 
 ## Contribute

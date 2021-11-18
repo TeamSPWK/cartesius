@@ -3,10 +3,10 @@ import sys
 
 import matplotlib.pyplot as plt
 from omegaconf import OmegaConf as omg
-import torch
 from shapely.geometry import LineString
 from shapely.geometry import Point
 from shapely.geometry import Polygon
+import torch
 
 CONFIG_DIR = "config"
 ENCODER_KEY = "encoder."

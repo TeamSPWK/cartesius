@@ -41,6 +41,7 @@ nav:
     - "models/transformer.md"
     - "models/graph.md"
     - "models/contribute.md"
+    - "": "models/upload_ckpt.md"
   - Code Reference:
     - "code_ref/data.md"
     - "code_ref/tasks.md"

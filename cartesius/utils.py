@@ -142,15 +142,17 @@ def create_tags(conf):
     return t
 
 
-def load_ckpt_state_dict(ckpt):
+def load_ckpt_state_dict(ckpt, *args, **kwargs):
     """Small function loading specific part of the state dict of a checkpoint, to use
     the encoder part only in downstream tasks.
 
     Args:
         ckpt (str): Path to the checkpoint to load.
+        *args (list): Additional positional arguments to pass to `torch.load()`.
+        **kwargs (dict): Additional keywords arguments to pass to `torch.load()`.
 
     Returns:
         dict: State dict of the encoder model used.
     """
-    state_dict = torch.load(ckpt)["state_dict"]
+    state_dict = torch.load(ckpt, *args, **kwargs)["state_dict"]
     return {k[len(ENCODER_KEY):]: v for k, v in state_dict.items() if k.startswith(ENCODER_KEY)}

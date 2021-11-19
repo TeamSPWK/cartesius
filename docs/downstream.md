@@ -83,6 +83,12 @@ m = Transformer(d_model=32, max_seq_len=64, n_heads=8, d_ff=64, dropout=0, activ
 m.load_state_dict(load_ckpt_state_dict("path/to/downloaded.ckpt"))
 ```
 
+!!! info
+    If needed, you can specify another device when loading the checkpoint, by passing `map_location` argument :
+    ```python
+    load_ckpt_state_dict("path/to/downloaded.ckpt", map_location=torch.device("cpu"))
+    ```
+
 ### Use specific configuration
 
 You can load specific configuration file from `cartesius` easily with `load_yaml()` :

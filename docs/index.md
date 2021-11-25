@@ -66,6 +66,7 @@ List of extra dependencies :
 * **`dev`** : `docs` + `tests` + `lint`.
 * **`graph`** : Dependencies for graph-based models.  
 _Note that you need to install `torch-scatter` and `torch-sparse` manually. See [Graph-based : Installation](models/graph.md#installation) for more details._
+* **`se3`** : Dependencies for SE(3)-Transformer model.
 * **`all`** : All extra dependencies.
 
 ## Contribute

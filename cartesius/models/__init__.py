@@ -1,6 +1,6 @@
 from .geometric import Geometric
-from .transformer import Transformer
 from .se3 import SE3
+from .transformer import Transformer
 
 
 def create_model(model_name, conf):

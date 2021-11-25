@@ -9,7 +9,7 @@ except ImportError:
 
 
 class SE3(nn.Module):
-    """Model using SE(3)-Transformer (invariant to translation and rotations).
+    """Model using SE(3)-Transformer (invariant to translations and rotations).
 
     Args:
         d_model (int): Dimension for the Transformer.

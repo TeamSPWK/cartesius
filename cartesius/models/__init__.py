@@ -27,6 +27,7 @@ def create_model(model_name, conf):
             max_seq_len=conf["max_seq_len"],
             n_heads=conf["n_heads"],
             n_layers=conf["n_layers"],
+            adjacent_only=conf["adjacent_only"],
         )
     else:
         raise ValueError(f"Unknown model ({model_name}). Please provide an existing model.")

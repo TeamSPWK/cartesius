@@ -23,6 +23,7 @@ d_ff: 256
 dropout: 0
 activation: "gelu"
 n_layers: 3
+adjacent_only: True
 
 # Tasks
 tasks: ["area", "perimeter", "size", "concavity", "min_clear", "centroid"]

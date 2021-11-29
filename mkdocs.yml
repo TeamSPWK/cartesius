@@ -40,6 +40,7 @@ nav:
   - Models:
     - "models/transformer.md"
     - "models/graph.md"
+    - "models/se3.md"
     - "models/contribute.md"
     - "": "models/upload_ckpt.md"
   - Code Reference:

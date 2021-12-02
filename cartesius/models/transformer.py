@@ -13,6 +13,9 @@ class Transformer(nn.Module):
         dropout (float): Dropout for the Transformer Encoder Layer.
         activation (str): Activation function to use in the Transformer Encoder Layer.
         n_layers (int): Number of layers in the Transformer Encoder.
+        pooling (str): Type of pooling to apply to extract the polygon representation
+            (`first` for using the first token as polygon representation, `mean`
+            for mean pooling over all tokens).
     """
 
     def __init__(self, d_model, max_seq_len, n_heads, d_ff, dropout, activation, n_layers, pooling):

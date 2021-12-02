@@ -15,7 +15,7 @@ class Transformer(nn.Module):
         n_layers (int): Number of layers in the Transformer Encoder.
     """
 
-    def __init__(self, d_model, max_seq_len, n_heads, d_ff, dropout, activation, n_layers):
+    def __init__(self, d_model, max_seq_len, n_heads, d_ff, dropout, activation, n_layers, pooling):
         super().__init__()
 
         # Embeddings
@@ -31,6 +31,10 @@ class Transformer(nn.Module):
                                                     batch_first=True)
         self.encoder = nn.TransformerEncoder(encoder_layers, n_layers)
 
+        # Pooling operation for polygon representation
+        assert pooling in ["first", "mean"]
+        self.pooling = pooling
+
     def forward(self, polygon, mask):
         batch_size, seq_len, _ = polygon.size()
         device = polygon.device
@@ -43,6 +47,9 @@ class Transformer(nn.Module):
         # Encode polygon
         hidden = self.encoder(emb, src_key_padding_mask=~mask)
 
-        # Extract a representation for the whole polygon : just take the first token representation
-        poly_feat = hidden[:, 0, :]
+        # Extract a representation for the whole polygon
+        if self.pooling == "first":
+            poly_feat = hidden[:, 0, :]
+        elif self.pooling == "mean":
+            poly_feat = torch.mean(hidden, dim=1)
         return poly_feat

@@ -13,6 +13,7 @@ def create_model(model_name, conf):
             dropout=conf["dropout"],
             activation=conf["activation"],
             n_layers=conf["n_layers"],
+            pooling=conf["pooling"],
         )
     elif model_name == "graph":
         return Geometric(

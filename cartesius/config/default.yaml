@@ -23,6 +23,7 @@ d_ff: 256
 dropout: 0
 activation: "gelu"
 n_layers: 3
+pooling: "first"
 adjacent_only: True
 
 # Tasks

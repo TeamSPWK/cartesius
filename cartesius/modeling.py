@@ -14,14 +14,14 @@ class ScoreHead(nn.Module):
 
     def __init__(self, d_in, d_hid, dropout, n=1):
         super().__init__()
-        self.dense = nn.Linear(d_in, d_hid)
+        # self.dense = nn.Linear(d_in, d_hid)
         self.dropout = nn.Dropout(p=dropout)
-        self.out_proj = nn.Linear(d_hid, n)
+        self.out_proj = nn.Linear(d_in, n)
 
     def forward(self, x):
         x = self.dropout(x)
-        x = self.dense(x)
-        x = torch.tanh(x)
-        x = self.dropout(x)
+        # x = self.dense(x)
+        # x = torch.tanh(x)
+        # x = self.dropout(x)
         x = self.out_proj(x)
         return x.squeeze(-1)

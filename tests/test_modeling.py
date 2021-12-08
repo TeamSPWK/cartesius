@@ -7,7 +7,7 @@ from cartesius.models import Transformer
 
 
 def test_score_head():
-    m = ScoreHead(d_in=32, d_hid=16, dropout=0)
+    m = ScoreHead(d_in=32, dropout=0)
     x = torch.rand((8, 32), requires_grad=True)
     labels = torch.rand((8,))
 

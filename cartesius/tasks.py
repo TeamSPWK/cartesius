@@ -16,7 +16,6 @@ class Task:
 
     def __init__(self, conf):
         self.d_in = conf["d_model"]
-        self.d_hid = conf["task_d_ff"]
         self.dropout = conf["task_dropout"]
 
     def get_label(self, polygon):
@@ -40,7 +39,7 @@ class Task:
         Returns:
             torch.nn.Module: Initialized classification/regression head.
         """
-        return ScoreHead(self.d_in, self.d_hid, self.dropout)
+        return ScoreHead(self.d_in, self.dropout)
 
     def get_loss_fn(self):
         """Method used to retrieve the task-specific loss.
@@ -79,7 +78,7 @@ class GuessSize(Task):
         return x_max - x_min, y_max - y_min
 
     def get_head(self):
-        return ScoreHead(self.d_in, self.d_hid, self.dropout, 2)
+        return ScoreHead(self.d_in, self.dropout, 2)
 
 
 class GuessConcavity(Task):
@@ -121,7 +120,7 @@ class GuessCentroid(Task):
         return polygon.centroid.coords[0]
 
     def get_head(self):
-        return ScoreHead(self.d_in, self.d_hid, self.dropout, 2)
+        return ScoreHead(self.d_in, self.dropout, 2)
 
 
 TASKS = {

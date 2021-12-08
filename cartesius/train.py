@@ -92,8 +92,11 @@ class PolygonEncoder(pl.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=(self.lr or self.learning_rate)) 
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2, eta_min=(self.lr or self.learning_rate) * 0.01)
+        optimizer = torch.optim.Adam(self.parameters(), lr=(self.lr or self.learning_rate))
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer,
+                                                                         T_0=10,
+                                                                         T_mult=2,
+                                                                         eta_min=(self.lr or self.learning_rate) * 0.01)
         return [optimizer], [scheduler]
 
 

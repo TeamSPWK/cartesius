@@ -120,7 +120,8 @@ def main():
     data = PolygonDataModule(conf, tasks)
 
     wandb_logger = pl.loggers.WandbLogger(project=conf.project_name, config=conf, tags=create_tags(conf))
-    wandb_logger.watch(model, log="all")
+    if conf.watch_model:
+        wandb_logger.watch(model, log="all")
     mc = ModelCheckpoint(monitor="val_loss", mode="min", filename="{step}-{val_loss:.4f}")
     trainer = pl.Trainer(
         gpus=1,

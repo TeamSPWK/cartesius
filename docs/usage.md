@@ -155,6 +155,8 @@ List of tasks currently implemented :
 
 **`n_workers`** : Number of loader worker processes (DataLoader).
 
+**`watch_model`** : Whether to watch model or not with `wandb`.
+
 ### Optimizer & LR Scheduler
 
 **`lr`** : Learning rate.

@@ -2,6 +2,7 @@
 
 | Config name                   |                                                           Checkpoint                                                          | Total loss |    area   |  centroid  | concavity |  min_clear | perimeter | size       |
 | ----------------------------- | :---------------------------------------------------------------------------------------------------------------------------: | :--------: | :-------: | :--------: | :-------: | :--------: | :-------: | ---------- |
+| transformer_static_scale.yaml (myeongjun) | wip |  **5.62**  | *0.00855* | *0.0012* |  *0.2130* | *0.00563* |  *0.1383* | *0.004* |
 | transformer_static_scale.yaml | [*ckpt*](https://github.com/TeamSPWK/cartesius/releases/download/untagged-79e7436c9dd96892b8d4/transformer_static_scale.ckpt) |  **6.54**  | *0.01312* | *0.001943* |  *0.2123* | *0.006937* |  *0.3726* | *0.007476* |
 | transformer_avg.yaml | [*ckpt*](https://github.com/TeamSPWK/cartesius/releases/download/untagged-32af8f4a17698334ff61/transformer_avg.ckpt) |  **6.661**   | _0.01486_ | _0.00188_ |   _0.1897_  |  _0.008232_  |   _0.732_  | _0.007794_ |
 | graph_base_static_scale.yaml  |  [*ckpt*](https://github.com/TeamSPWK/cartesius/releases/download/untagged-79e7436c9dd96892b8d4/graph_base_static_scale.ckpt) |  **6.557** | *0.01596* | *0.001235* |  *0.2101* | *0.002985* |  *0.2356* | *0.008056* |

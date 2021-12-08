@@ -143,8 +143,6 @@ List of tasks currently implemented :
 
 **`tasks_scales`** : Scales for the tasks' losses.
 
-**`task_d_ff`** : Hidden dimension for the FF of the task regression heads.
-
 **`task_dropout`** : Dropout ratio for the task regression heads.
 
 ### Training

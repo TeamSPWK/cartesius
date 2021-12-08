@@ -96,7 +96,11 @@ class PolygonEncoder(pl.LightningModule):
         optimizer = torch.optim.Adam(self.parameters(), lr=lr)
 
         if self.conf["scheduler"] == "cosannwarm":
-            scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=self.conf["sched_T_0"], T_mult=self.conf["sched_T_mult"], eta_min=lr * self.conf["sched_min_lr_ratio"])
+            scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer,
+                                                                             T_0=self.conf["sched_T_0"],
+                                                                             T_mult=self.conf["sched_T_mult"],
+                                                                             eta_min=lr *
+                                                                             self.conf["sched_min_lr_ratio"])
             return [optimizer], [scheduler]
         else:
             return optimizer

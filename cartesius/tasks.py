@@ -1,4 +1,5 @@
 import torch.nn.functional as F
+import numpy as np
 
 from cartesius.modeling import ScoreHead
 
@@ -121,7 +122,52 @@ class GuessCentroid(Task):
 
     def get_head(self):
         return ScoreHead(self.d_in, self.dropout, 2)
-
+    
+    
+class GuessOmbrRatio(Task):
+    """Task predicting the OMBR(oriented minimum bounding rectangle) ratio of the polygon.
+    """
+    
+    def get_label(self, polygon):
+        return polygon.area / polygon.minimum_rotated_rectangle.area
+    
+    
+class GuessAspectRatio(Task):
+    """Task predicting the OMBR(oriented minimum bounding rectangle) aspect ratio of the polygon.
+    """
+    
+    def get_label(self, polygon):
+        ombr_coords = np.array(polygon.minimum_rotated_rectangle.exterior.coords)
+        segvecs = ombr_coords[2] - ombr_coords[1], ombr_coords[1] - ombr_coords[0]
+        x, y = [np.linalg.norm(vec) for vec in segvecs]
+        return x / y if x < y else y / x
+    
+    
+class GuessOpeningRatio(Task):
+    """Task predicting the opening ratio of the polygon.
+    Used fixed length of opening, to match the purpose of discriminating deadspace.
+    #TODO: This task needs parameters from transformation (To be implemented)
+    """
+    
+    def get_label(self, polygon):
+        return polygon.buffer(-10).buffer(10).area / polygon.area
+    
+    
+class GuessLongestThreeEdges(Task):
+    """Task sorting the edges of the polygon by its lengths.
+    #TODO: This task needs entity head and categorical loss (To be implemented)
+    """
+    
+    def get_label(self, polygon):
+        coords = np.array(polygon.exterior.coords)
+        seglens = [np.linalg.norm(coords[i+1] - coords[i]) for i in range(len(coords) - 1)]
+        return np.argsort(seglens[::-1])[:3]
+    
+    def get_head(self):
+        return ScoreHead(self.d_in, self.dropout, 3)
+    
+    
+        
 
 TASKS = {
     "area": GuessArea,
@@ -130,4 +176,8 @@ TASKS = {
     "concavity": GuessConcavity,
     "min_clear": GuessMinimumClearance,
     "centroid": GuessCentroid,
+    "ombr_ratio": GuessOmbrRatio,
+    "aspect_ratio": GuessAspectRatio,
+    "opening_ratio": GuessOpeningRatio,
+    "longest_edges": GuessLongestThreeEdges
 }

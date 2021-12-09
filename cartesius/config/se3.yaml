@@ -12,3 +12,4 @@ n_layers: 1
 lr: 1e-4
 auto_lr_find: False
 n_batch_per_epoch: 5000
+watch_model: False

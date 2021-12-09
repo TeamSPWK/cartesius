@@ -147,19 +147,31 @@ List of tasks currently implemented :
 
 ### Training
 
-**`lr`** : Learning rate.
-
-**`auto_lr_find`** : Whether to find LR automatically or not.
-
 **`batch_size`** : Batch size.
 
 **`n_batch_per_epoch`** : Number of batch to consider in one epoch.
 
-**`grad_clip`** : Gradient clipping.
-
 **`max_time`** : Maximum time alloted to training.
 
 **`n_workers`** : Number of loader worker processes (DataLoader).
+
+**`watch_model`** : Whether to watch model or not with `wandb`.
+
+### Optimizer & LR Scheduler
+
+**`lr`** : Learning rate.
+
+**`auto_lr_find`** : Whether to find LR automatically or not.
+
+**`grad_clip`** : Gradient clipping.
+
+**`scheduler`**: Name of the LR scheduler to user. Can be `cosannwarm` or null.
+
+**`sched_T_0`**: When using CosineAnnealingWarmRestart scheduler, this is the number of iterations for the first restart.
+
+**`sched_T_mult`**: When using CosineAnnealingWarmRestart scheduler, this is the factor increases after a restart.
+
+**`sched_min_lr_ratio`**: When using CosineAnnealingWarmRestart scheduler, this is the minimum learning rate.
 
 ### Polygon generation
 

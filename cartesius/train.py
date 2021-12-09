@@ -92,12 +92,18 @@ class PolygonEncoder(pl.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=(self.lr or self.learning_rate))
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer,
-                                                                         T_0=10,
-                                                                         T_mult=2,
-                                                                         eta_min=(self.lr or self.learning_rate) * 0.01)
-        return [optimizer], [scheduler]
+        lr = self.lr or self.learning_rate
+        optimizer = torch.optim.Adam(self.parameters(), lr=lr)
+
+        if self.conf["scheduler"] == "cosannwarm":
+            scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer,
+                                                                             T_0=self.conf["sched_T_0"],
+                                                                             T_mult=self.conf["sched_T_mult"],
+                                                                             eta_min=lr *
+                                                                             self.conf["sched_min_lr_ratio"])
+            return [optimizer], [scheduler]
+        else:
+            return optimizer
 
 
 def main():
@@ -118,7 +124,8 @@ def main():
     data = PolygonDataModule(conf, tasks)
 
     wandb_logger = pl.loggers.WandbLogger(project=conf.project_name, config=conf, tags=create_tags(conf))
-    wandb_logger.watch(model, log="all")
+    if conf.watch_model:
+        wandb_logger.watch(model, log="all")
     mc = ModelCheckpoint(monitor="val_loss", mode="min", filename="{step}-{val_loss:.4f}")
     trainer = pl.Trainer(
         gpus=1,

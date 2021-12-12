@@ -182,11 +182,11 @@ def kaggle_convert_labels(task_names, labels, weights=None):
 
     kaggle_list = []
     for name, label, w in zip(task_names, labels, weights):
-        if isinstance(label, tuple):
+        if isinstance(label, (tuple, list)):
             for j, labl in enumerate(label):
                 row = {"id": name + f"_{j}", "value": labl}
                 if w is not None:
-                    row["weight"] = w
+                    row["weight"] = w / len(label)
                 kaggle_list.append(row)
         else:
             row = {"id": name, "value": label}

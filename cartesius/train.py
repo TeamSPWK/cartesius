@@ -1,4 +1,5 @@
 import random
+import csv
 
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
@@ -11,6 +12,7 @@ from cartesius.models import create_model
 from cartesius.tasks import TASKS
 from cartesius.utils import create_tags
 from cartesius.utils import load_conf
+from cartesius.utils import kaggle_convert_labels
 
 
 class PolygonEncoder(pl.LightningModule):
@@ -89,7 +91,26 @@ class PolygonEncoder(pl.LightningModule):
 
         loss = sum(losses)
         self.log("test_loss", loss)
-        return loss
+        return [p.tolist() for p in preds]
+
+    def test_epoch_end(self, outputs):
+        # Convert outputs into a list of sample, where each sample is a list of task values
+        preds = []
+        for output in outputs:
+            # Transpose : [tasks, batch] => [batch, tasks]
+            batch = list(map(list, zip(*output)))
+            preds.extend(batch)
+
+        kaggle_rows = [kaggle_convert_labels(self.conf.tasks, p) for p in preds]
+
+        with open("submission.csv", "w") as csv_f:
+            writer = csv.DictWriter(csv_f, fieldnames=list(kaggle_rows[0][0].keys()))
+            writer.writeheader()
+
+            for i, kaggle_row in enumerate(kaggle_rows):
+                for row in kaggle_row:
+                    row["id"] = f"{i}_" + row["id"]
+                    writer.writerow(row)
 
     def configure_optimizers(self):
         lr = self.lr or self.learning_rate

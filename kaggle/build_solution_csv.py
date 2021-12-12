@@ -14,7 +14,7 @@ if __name__ == "__main__":
     tasks = [TASKS[t](conf) for t in conf.tasks]
     task_names = list(TASKS.keys())
 
-    transforms = [TRANSFORMS["norm_scale"](conf), TRANSFORMS["norm_static_scale"](conf)]
+    transforms = [TRANSFORMS["norm_pos"](conf), TRANSFORMS["norm_static_scale"](conf)]
     test_set = PolygonTestset(conf.test_set_file, tasks=tasks, transforms=transforms)
 
     kaggle_rows = [kaggle_convert_labels(task_names, labels, conf.tasks_scales) for _, labels in test_set]

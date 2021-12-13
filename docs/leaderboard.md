@@ -1,5 +1,14 @@
 # Leaderboard
 
+## Public leaderboard
+
+You can see the [public leaderboard on Kaggle](https://www.kaggle.com/c/cartesius/leaderboard).
+
+## Private leaderboard
+
+!!! info
+    This leaderboard is just used to keep track of the models implemented in `cartesius` and how they compare to each other.
+
 | Config name                   |                                                           Checkpoint                                                          | Total loss |    area   |  centroid  | concavity |  min_clear | perimeter | size       |
 | ----------------------------- | :---------------------------------------------------------------------------------------------------------------------------: | :--------: | :-------: | :--------: | :-------: | :--------: | :-------: | ---------- |
 | graph_base_static_scale.yaml  |  [*ckpt*](https://github.com/TeamSPWK/cartesius/releases/download/untagged-069a5fb3505f82ae6f83/graph_base_static_scale.ckpt) |  **5.455** | *0.00845* | *0.0007111* |  *0.2038* | *0.003739* |  *0.2713* | *0.003037* |

@@ -156,3 +156,41 @@ def load_ckpt_state_dict(ckpt, *args, **kwargs):
     """
     state_dict = torch.load(ckpt, *args, **kwargs)["state_dict"]
     return {k[len(ENCODER_KEY):]: v for k, v in state_dict.items() if k.startswith(ENCODER_KEY)}
+
+
+def kaggle_convert_labels(task_names, labels, weights=None):
+    """Convert labels into a dict with the right names and right type.
+
+    Kaggle uses csv files for submission. But some tasks uses multiple labels (and are
+    returned as a tuple). For example for a task predicting the position of a point, we
+    will have a label containing the x coordinates and the y coordinates.
+
+    But tuple can't be written in CSV files, so we need to flatten those. This function
+    takes care of creating a proper dictionary, that can be written in a CSV file.
+
+    Args:
+        task_names (list): List of tasks names.
+        labels (list): List of labels, one for each task.
+        weights (list, optional): Optionally provide some weights for each task. If
+            `None`, no key "weight" will be added to the resulting dict. Defaults to `None`.
+
+    Returns:
+        list: List of dictionary that can be written to CSV for Kaggle.
+    """
+    if weights is None:
+        weights = [None for _ in task_names]
+
+    kaggle_list = []
+    for name, label, w in zip(task_names, labels, weights):
+        if isinstance(label, (tuple, list)):
+            for j, labl in enumerate(label):
+                row = {"id": name + f"_{j}", "value": labl}
+                if w is not None:
+                    row["weight"] = w / len(label)
+                kaggle_list.append(row)
+        else:
+            row = {"id": name, "value": label}
+            if w is not None:
+                row["weight"] = w
+            kaggle_list.append(row)
+    return kaggle_list

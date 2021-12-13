@@ -45,6 +45,9 @@ You can test a specific checkpoint by specifying its path :
 cartesius train=False test=True ckpt=<path/to/my/model.ckpt>
 ```
 
+!!! tip
+    After testing, a file `submission.csv` will be saved. You can submit this file in the [Kaggle competition](https://www.kaggle.com/c/cartesius/).
+
 ## Data
 
 ### Train data
@@ -114,6 +117,8 @@ List of tasks currently implemented :
 **`val_set_file`** : Path to the JSON file containing the validation set.
 
 **`test_set_file`** : Path to the JSON file containing the test set.
+
+**`kaggle_submission_file`** : Path where to save the CSV file that can be used as submission file for the Kaggle competition.
 
 ### Model
 

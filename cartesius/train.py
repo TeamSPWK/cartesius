@@ -1,8 +1,5 @@
-import random
 import csv
-import json
-from zipfile import ZipFile
-from pathlib import Path
+import random
 
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
@@ -14,8 +11,8 @@ from cartesius.data import PolygonDataModule
 from cartesius.models import create_model
 from cartesius.tasks import TASKS
 from cartesius.utils import create_tags
-from cartesius.utils import load_conf
 from cartesius.utils import kaggle_convert_labels
+from cartesius.utils import load_conf
 
 
 class PolygonEncoder(pl.LightningModule):
@@ -106,7 +103,7 @@ class PolygonEncoder(pl.LightningModule):
 
         kaggle_rows = [kaggle_convert_labels(self.conf.tasks, p) for p in preds]
 
-        with open(self.conf.kaggle_submission_file, "w") as csv_f:
+        with open(self.conf.kaggle_submission_file, "w", encoding="utf-8") as csv_f:
             writer = csv.DictWriter(csv_f, fieldnames=list(kaggle_rows[0][0].keys()))
             writer.writeheader()
 

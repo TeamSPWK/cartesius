@@ -6,7 +6,8 @@ from omegaconf import OmegaConf as omg
 from cartesius.data import PolygonTestset
 from cartesius.tasks import TASKS
 from cartesius.transforms import TRANSFORMS
-from cartesius.utils import kaggle_convert_labels, load_conf
+from cartesius.utils import kaggle_convert_labels
+from cartesius.utils import load_conf
 
 
 def load_script_conf():

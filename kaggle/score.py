@@ -1,12 +1,24 @@
 import csv
+import sys
+
+from omegaconf import OmegaConf as omg
 
 
-SOLUTION_FILE_NAME = "kaggle_solution.csv"
-SUBMISSION_FILE_NAME = "submission.csv"
+def load_script_conf():
+    default_conf = omg.create({
+        "solution_file": "kaggle_solution.csv",
+        "kaggle_submission_file": "submission.csv",
+    })
+
+    sys.argv = [a.strip("-") for a in sys.argv]
+    cli_conf = omg.from_cli()
+
+    return omg.merge(default_conf, cli_conf)
 
 
 if __name__ == "__main__":
-    with open(SOLUTION_FILE_NAME, "r") as sol_f, open(SUBMISSION_FILE_NAME, "r") as sub_f:
+    conf = load_script_conf()
+    with open(conf.solution_file, "r") as sol_f, open(conf.kaggle_submission_file, "r") as sub_f:
         solution_rows = csv.DictReader(sol_f)
         submission_rows = csv.DictReader(sub_f)
 

@@ -10,6 +10,7 @@ from torch import nn
 from cartesius.data import PolygonDataModule
 from cartesius.models import create_model
 from cartesius.tasks import TASKS
+from cartesius.tokenizers import TOKENIZERS
 from cartesius.utils import create_tags
 from cartesius.utils import kaggle_convert_labels
 from cartesius.utils import load_conf
@@ -25,16 +26,17 @@ class PolygonEncoder(pl.LightningModule):
     Args:
         conf (omegaconf.OmegaConf): Configuration.
         tasks (list): List of Tasks to train on.
+        encoder (torch.nn.Module): Encoder to train and benchmark.
     """
 
-    def __init__(self, conf, tasks):
+    def __init__(self, conf, tasks, encoder):
         super().__init__()
 
         self.conf = conf
         self.tasks = tasks
         self.tasks_scales = conf["tasks_scales"]
 
-        self.encoder = create_model(conf.model_name, conf)
+        self.encoder = encoder
         self.tasks_heads = nn.ModuleList([t.get_head() for t in self.tasks])
 
         self.learning_rate = conf.lr
@@ -141,8 +143,12 @@ def main():
     # Resolve tasks
     tasks = [TASKS[t](conf) for t in conf.tasks]
 
-    model = PolygonEncoder(conf, tasks)
-    data = PolygonDataModule(conf, tasks)
+    # Create the right model + tokenizer
+    tokenizer = TOKENIZERS[conf["tokenizer"]](**conf)
+    encoder = create_model(conf.model_name, conf)
+
+    model = PolygonEncoder(conf, tasks, encoder)
+    data = PolygonDataModule(conf, tasks, tokenizer)
 
     wandb_logger = pl.loggers.WandbLogger(project=conf.project_name, config=conf, tags=create_tags(conf))
     if conf.watch_model:

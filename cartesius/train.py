@@ -106,7 +106,7 @@ class PolygonEncoder(pl.LightningModule):
 
         kaggle_rows = [kaggle_convert_labels(self.conf.tasks, p) for p in preds]
 
-        with open("submission.csv", "w") as csv_f:
+        with open(self.conf.kaggle_submission_file, "w") as csv_f:
             writer = csv.DictWriter(csv_f, fieldnames=list(kaggle_rows[0][0].keys()))
             writer.writeheader()
 

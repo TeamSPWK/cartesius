@@ -13,6 +13,7 @@ save_dir: "results"
 ckpt: null
 val_set_file: "valset.json"
 test_set_file: "testset.json"
+kaggle_submission_file: "submission.csv"
 
 # Model
 model_name: "transformer"

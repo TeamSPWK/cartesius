@@ -115,6 +115,8 @@ List of tasks currently implemented :
 
 **`test_set_file`** : Path to the JSON file containing the test set.
 
+**`kaggle_submission_file`** : Path where to save the CSV file that can be used as submission file for the Kaggle competition.
+
 ### Model
 
 **`model_name`** : Name of the model to use.

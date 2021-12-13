@@ -104,33 +104,16 @@ class PolygonEncoder(pl.LightningModule):
             batch = list(map(list, zip(*output)))
             preds.extend(batch)
 
-        rows = []
-        for pred in preds:
-            rows.append({task_name: p for task_name, p in zip(self.conf.tasks, pred)})
+        kaggle_rows = [kaggle_convert_labels(self.conf.tasks, p) for p in preds]
 
-        with open("submission.json", "w") as f:
-            json.dump(rows, f)
+        with open("submission.csv", "w") as csv_f:
+            writer = csv.DictWriter(csv_f, fieldnames=list(kaggle_rows[0][0].keys()))
+            writer.writeheader()
 
-        with ZipFile(Path("submission.json").with_suffix(".zip"), "w") as zipf:
-            zipf.write("submission.json")
-
-        # Convert outputs into a list of sample, where each sample is a list of task values
-        # preds = []
-        # for output in outputs:
-        #     # Transpose : [tasks, batch] => [batch, tasks]
-        #     batch = list(map(list, zip(*output)))
-        #     preds.extend(batch)
-
-        # kaggle_rows = [kaggle_convert_labels(self.conf.tasks, p) for p in preds]
-
-        # with open("submission.csv", "w") as csv_f:
-        #     writer = csv.DictWriter(csv_f, fieldnames=list(kaggle_rows[0][0].keys()))
-        #     writer.writeheader()
-
-        #     for i, kaggle_row in enumerate(kaggle_rows):
-        #         for row in kaggle_row:
-        #             row["id"] = f"{i}_" + row["id"]
-        #             writer.writerow(row)
+            for i, kaggle_row in enumerate(kaggle_rows):
+                for row in kaggle_row:
+                    row["id"] = f"{i}_" + row["id"]
+                    writer.writerow(row)
 
     def configure_optimizers(self):
         lr = self.lr or self.learning_rate

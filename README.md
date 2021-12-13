@@ -5,6 +5,7 @@
 <a href="https://github.com/TeamSPWK/cartesius/actions/workflows/pytest.yml"><img src="https://github.com/TeamSPWK/cartesius/actions/workflows/pytest.yml/badge.svg" alt="Test status" /></a>
 <a href="https://github.com/TeamSPWK/cartesius/actions/workflows/lint.yml"><img src="https://github.com/TeamSPWK/cartesius/actions/workflows/lint.yml/badge.svg" alt="Lint status" /></a>
 <a href="https://spwk-cartesius.readthedocs-hosted.com/en/latest/?badge=latest"><img src="https://readthedocs.com/projects/spwk-cartesius/badge/?version=latest&token=23bd7924365dc7d2aecf8f3af3bdd2bfd045d1a17674a28bf3d857c3a6afef97" alt="Documentation status" /></a>
+<a href="https://www.kaggle.com/c/cartesius/"><img src="https://img.shields.io/badge/kaggle-cartesius-blueviolet" alt="Kaggle" /></a>
 
 <p align="center">
   <a href="#description">Description</a> •
@@ -67,6 +68,10 @@ You can test a specific checkpoint by running :
 ```bash
 cartesius train=False test=True ckpt=<path/to/my/model.ckpt>
 ```
+
+---
+
+_Note : After testing, a file `submission.csv` is saved, you can use it for the [Kaggle competition](https://www.kaggle.com/c/cartesius/)._
 
 <h2 align="center">Contribute</h2>
 

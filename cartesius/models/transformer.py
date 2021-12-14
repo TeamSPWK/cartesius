@@ -56,5 +56,5 @@ class Transformer(nn.Module):
         elif self.pooling == "mean":
             poly_feat = torch.mean(hidden, dim=1)
         elif self.pooling == "max":
-            poly_feat = torch.max(hidden, dim=1)
+            poly_feat = torch.max(hidden, dim=1)[0]
         return poly_feat

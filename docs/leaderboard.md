@@ -9,7 +9,7 @@ You can see the [public leaderboard on Kaggle](https://www.kaggle.com/c/cartesiu
 !!! info
     This leaderboard is just used to keep track of the models implemented in `cartesius` and how they compare to each other.
 
-| Config name                   |                                                           Checkpoint                                                          | Total loss |
+| Config name                   |                                                           Checkpoint                                                          | Test loss |
 | ----------------------------- | :---------------------------------------------------------------------------------------------------------------------------: | :--------: |
 | graph_base.yaml  |  [*ckpt*](https://github.com/TeamSPWK/cartesius/releases/download/untagged-d0f96c06e59f279bfe4a/graph_base.ckpt) |  **5.455** |
 | transformer_lr_sched.yaml | [*ckpt*](https://github.com/TeamSPWK/cartesius/releases/download/untagged-d0f96c06e59f279bfe4a/transformer_lr_sched.ckpt) |  **5.628**  |

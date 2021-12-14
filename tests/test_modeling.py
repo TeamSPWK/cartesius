@@ -1,3 +1,4 @@
+import pytest
 import torch
 
 from cartesius.modeling import ScoreHead

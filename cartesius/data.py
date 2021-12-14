@@ -14,7 +14,6 @@ import torch
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 
-from cartesius.tokenizers import TOKENIZERS
 from cartesius.transforms import TRANSFORMS
 
 DATA_DIR = "data"
@@ -232,9 +231,10 @@ class PolygonDataModule(pl.LightningDataModule):
     Args:
         conf (omegaconf.OmegaConf): Configuration.
         tasks (list): List of Tasks to train on.
+        tokenizer (cartesius.tokenizers.Tokenizer): Tokenizer to use.
     """
 
-    def __init__(self, conf, tasks):
+    def __init__(self, conf, tasks, tokenizer):
         super().__init__()
 
         self.x_range = conf["x_range"]
@@ -246,7 +246,7 @@ class PolygonDataModule(pl.LightningDataModule):
         self.val_set_file = conf["val_set_file"]
         self.test_set_file = conf["test_set_file"]
 
-        self.tokenizer = TOKENIZERS[conf["tokenizer"]](**conf)
+        self.tokenizer = tokenizer
         self.collate_fn = partial(collate, tokenizer=self.tokenizer)
 
         self.batch_size = conf["batch_size"]

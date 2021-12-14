@@ -138,7 +138,7 @@ List of tasks currently implemented :
 
 **`n_layers`** : Number of Transformer layers.
 
-**`pooling`** : Type of pooling for representing the whole polygon in Transformer. Can be `first` or `mean`.
+**`pooling`** : Type of pooling for representing the whole polygon in Transformer. Can be `first`, `mean`, or `max`.
 
 **`adjacent_only`** : If set to `True`, an adjency matrix will be used in SE(3)-Transformer. Otherwise all nodes are attended.
 

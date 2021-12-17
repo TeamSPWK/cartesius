@@ -4,16 +4,16 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 reqs = [
-    "torch==1.9.*", "pytorch-lightning==1.5.*", "shapely==1.8.*", "omegaconf==2.1.*", "matplotlib==3.2.*",
-    "wandb==0.12.*"
+    "torch~=1.9", "pytorch-lightning~=1.5", "shapely~=1.8", "omegaconf~=2.1", "matplotlib~=3.2",
+    "wandb~=0.12"
 ]
 
 extras_require = {
-    "docs": ["mkdocs-material==7.3.*", "mkdocstrings==0.16.*"],
-    "tests": ["pytest==6.2.*"],
-    "lint": ["isort==5.10.*", "yapf==0.31.*", "pylint==2.11.*"],
-    "graph": ["torch-geometric==2.0.*"],
-    "se3": ["se3-transformer-pytorch==0.8.*"],
+    "docs": ["mkdocs-material~=7.3", "mkdocstrings~=0.16"],
+    "tests": ["pytest~=6.2"],
+    "lint": ["isort~=5.10", "yapf~=0.31", "pylint~=2.11"],
+    "graph": ["torch-geometric~=2.0"],
+    "se3": ["se3-transformer-pytorch~=0.8"],
 }
 extras_require["all"] = sum(extras_require.values(), [])
 extras_require["dev"] = extras_require["docs"] + extras_require["tests"] + extras_require["lint"]

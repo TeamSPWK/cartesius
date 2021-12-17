@@ -150,7 +150,7 @@ class GuessOpeningRatio(Task):
     """
     
     def get_label(self, polygon):
-        return polygon.buffer(-10).buffer(10).area / polygon.area
+        return polygon.buffer(-0.1).buffer(0.1).area / polygon.area
     
     
 class GuessLongestThreeEdges(Task):

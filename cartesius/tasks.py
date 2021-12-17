@@ -176,5 +176,4 @@ TASKS = {
     "ombr_ratio": GuessOmbrRatio,
     "aspect_ratio": GuessAspectRatio,
     "opening_ratio": GuessOpeningRatio,
-    "longest_edges": GuessLongestThreeEdges
 }

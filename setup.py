@@ -3,10 +3,7 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-reqs = [
-    "torch~=1.9", "pytorch-lightning~=1.5", "shapely~=1.8", "omegaconf~=2.1", "matplotlib~=3.2",
-    "wandb~=0.12"
-]
+reqs = ["torch~=1.9", "pytorch-lightning~=1.5", "shapely~=1.8", "omegaconf~=2.1", "matplotlib~=3.2", "wandb~=0.12"]
 
 extras_require = {
     "docs": ["mkdocs-material~=7.3", "mkdocstrings~=0.16"],

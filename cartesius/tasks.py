@@ -1,5 +1,5 @@
-import torch.nn.functional as F
 import numpy as np
+import torch.nn.functional as F
 
 from cartesius.modeling import ScoreHead
 
@@ -146,7 +146,6 @@ class GuessAspectRatio(Task):
 class GuessOpeningRatio(Task):
     """Task predicting the opening ratio of the polygon.
     Used fixed length of opening, to match the purpose of discriminating deadspace.
-    #TODO: This task needs parameters from transformation (To be implemented)
     """
     
     def get_label(self, polygon):

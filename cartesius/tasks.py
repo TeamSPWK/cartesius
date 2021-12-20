@@ -2,7 +2,6 @@ import torch.nn.functional as F
 
 from cartesius.modeling import ScoreHead
 
-
 EPS = 1e-9
 
 

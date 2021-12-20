@@ -1,3 +1,5 @@
+import cv2
+import numpy as np
 from shapely.geometry import Polygon
 import torch
 
@@ -132,7 +134,29 @@ class GraphTokenizer(Tokenizer):
         }
 
 
-TOKENIZERS = {
-    "transformer": TransformerTokenizer,
-    "graph": GraphTokenizer,
-}
+class RasterTokenizer(Tokenizer):
+    """Tokenizer for Image-based model.
+    """
+
+    def tokenize(self, polygons):
+        canvas_len = 128
+        poly_max_len = 1
+        canvas_center = np.array((canvas_len, canvas_len)) / 2
+
+        batch = []
+        for p in polygons:
+            canvas = np.zeros((canvas_len, canvas_len, 3), dtype=np.uint8)
+            if isinstance(p, Polygon):
+                poly_pts = np.array(p.boundary.coords)[:-1]
+            else:
+                poly_pts = np.array(p.coords)
+            centralized_poly = ((poly_pts - np.array(p.centroid.coords)) / (poly_max_len / canvas_len) + canvas_center)
+            preprocessed_poly = centralized_poly.astype(np.int32).reshape(-1, 1, 2)
+            img = cv2.fillPoly(canvas, [preprocessed_poly.reshape(-1, 1, 2)], (255, 255, 255)) / 255
+            batch.append(img)
+        batch = np.rollaxis(np.stack(batch), -1, 1)
+        x = torch.tensor(batch, dtype=torch.float32)
+        return {"x": x}
+
+
+TOKENIZERS = {"transformer": TransformerTokenizer, "graph": GraphTokenizer, "raster": RasterTokenizer}

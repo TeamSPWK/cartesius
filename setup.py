@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 reqs = [
     "torch==1.9.*", "pytorch-lightning==1.5.*", "shapely==1.8.*", "omegaconf==2.1.*", "matplotlib==3.2.*",
-    "wandb==0.12.*"
+    "wandb==0.12.*", "opencv-python==4.4.*"
 ]
 
 extras_require = {

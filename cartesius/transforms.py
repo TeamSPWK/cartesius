@@ -1,5 +1,3 @@
-import cv2
-import numpy as np
 from shapely.affinity import scale
 from shapely.affinity import translate
 from shapely.geometry import Point
@@ -76,23 +74,6 @@ class NormalizeScaleStaticTransform(Transform):
         scale_ratio = 1 / scale_size
 
         return scale(polygon, xfact=scale_ratio, yfact=scale_ratio, origin=ref)
-
-
-class RasterTransform(Transform):
-    """Transform that rasterize the given polygon
-    """
-
-    def __call__(self, polygon):
-        canvas_len = self.config["canvas_len"]
-        poly_max_len = self.config["poly_max_len"]
-        canvas_center = np.array((canvas_len, canvas_len)) / 2
-        poly_pts = np.array(polygon.boundary)[:-1]
-        centralized_poly = ((poly_pts - np.array(polygon.centroid)) / (poly_max_len / canvas_len) + canvas_center)
-        preprocessed_poly = centralized_poly.astype(np.int32).reshape(-1, 1, 2)
-        canvas = np.zeros((canvas_len, canvas_len, 3), dtype=np.uint8)
-        img = cv2.fillPoly(canvas, [preprocessed_poly.reshape(-1, 1, 2)], (255, 255, 255))
-
-        return img, centralized_poly
 
 
 TRANSFORMS = {

@@ -136,6 +136,10 @@ class GraphTokenizer(Tokenizer):
 
 class RasterTokenizer(Tokenizer):
     """Tokenizer for Image-based model.
+    
+    This tokenizer generates image with canvas size 128 * 128,
+    which colors inside of polygon with 1 and outside of polygon with 0.
+    Shape of returned tensor is (batch size, 3, canvas length, canvas length).
     """
 
     def tokenize(self, polygons):

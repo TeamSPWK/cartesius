@@ -3,15 +3,10 @@ from torch import nn
 
 
 class ResNet(nn.Module):
-    """Model using SE(3)-Transformer (invariant to translations and rotations).
+    """Model using ResNet (Pytorch official model with a dimension reducing tail)
 
     Args:
-        d_model (int): Dimension for the Transformer.
-        max_seq_len (int): Maximum sequence length.
-        n_heads (int): Number of attention heads for the Transformer.
-        n_layers (int): Number of layers in the Transformer Encoder.
-        adjacent_only (bool): If set to `True`, use Adjacency matrix in Transformer. If
-            set to False, all nodes are attended.
+        d_model (int): Dimension for the ResNet.
     """
 
     def __init__(self, d_model):

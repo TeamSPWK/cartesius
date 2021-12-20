@@ -28,7 +28,7 @@ pooling: "first"
 adjacent_only: True
 
 # Tasks
-tasks: ["area", "perimeter", "size", "concavity", "min_clear", "centroid"]
+tasks: ["area", "perimeter", "size", "convexity", "min_clear", "centroid"]
 tasks_scales: [100, 1, 50, 20, 20, 50]
 task_dropout: 0.1
 

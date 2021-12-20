@@ -81,10 +81,10 @@ class GuessSize(Task):
         return ScoreHead(self.d_in, self.dropout, 2)
 
 
-class GuessConcavity(Task):
-    """Task predicting the concavity of the polygon.
+class GuessConvexity(Task):
+    """Task predicting the convexity of the polygon.
 
-    Concavity represents how much concave a polygon is. It's computed as the area
+    Convexity represents how much convex a polygon is. It's computed as the area
     of the current polygon divided by the area of its convex hull.
     """
 
@@ -127,7 +127,7 @@ TASKS = {
     "area": GuessArea,
     "perimeter": GuessPerimeter,
     "size": GuessSize,
-    "concavity": GuessConcavity,
+    "convexity": GuessConvexity,
     "min_clear": GuessMinimumClearance,
     "centroid": GuessCentroid,
 }

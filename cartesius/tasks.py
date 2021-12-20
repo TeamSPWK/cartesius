@@ -92,9 +92,9 @@ class GuessConcavity(Task):
         convex_p = polygon.convex_hull
 
         if convex_p.area == 0:
-            return 1
+            return 0.
         else:
-            return polygon.area / convex_p.area
+            return max(polygon.area / convex_p.area, 0.)
 
 
 class GuessMinimumClearance(Task):

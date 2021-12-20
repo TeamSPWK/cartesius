@@ -154,10 +154,13 @@ def main():
     if conf.watch_model:
         wandb_logger.watch(model, log="all")
     mc = ModelCheckpoint(monitor="val_loss", mode="min", filename="{step}-{val_loss:.4f}")
+    callbacks = [mc]
+    if conf.early_stoppping:
+        callbacks.append(EarlyStopping(monitor="val_loss", mode="min", verbose=True))
     trainer = pl.Trainer(
         gpus=1,
         logger=wandb_logger,
-        callbacks=[EarlyStopping(monitor="val_loss", mode="min", verbose=True), mc],
+        callbacks=callbacks,
         gradient_clip_val=conf.grad_clip,
         max_time=conf.max_time,
         auto_lr_find=conf.auto_lr_find,

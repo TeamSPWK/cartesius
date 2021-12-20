@@ -165,6 +165,79 @@ class PolygonDataset(Dataset):
             return Polygon(points)
 
 
+class PolygonDatasetV2(PolygonDataset):
+    """Pytorch dataset generating random Polygon from a more balanced distribution.
+
+    This dataset is used for training, as the data is randomly generated.
+
+    Args:
+        x_range (list): List of 2 elements representing the range from where to
+            draw the polygon center (x-axis).
+        y_range (list): List of 2 elements representing the range from where to
+            draw the polygon center (y-axis).
+        avg_radius_range (list): list of float, representing the possible choices
+            for the average radius of the generated polygon.
+        n_range (list): list of int, representing the possible choices for the number
+            of points used to generate a polygon.
+        tasks (list, optional): list of Tasks. These tasks will be used to compute the
+            labels of each polygon. Defaults to None.
+        transforms (list, optional): list of Transforms to apply to the polygons after
+            they are generated and before the labels are computed. Defaults to None.
+        batch_size (int, optional): Size of the batch. Defaults to 64.
+        n_batch_per_epoch (int, optional): Number of batch per epoch to simulate. Since
+            the dataset is infinite (randomly generated), we can choose the size of each
+            epoch. Defaults to 1000.
+    """
+
+    def __init__(self,
+                 x_range,
+                 y_range,
+                 avg_radius_range,
+                 n_range,
+                 tasks=None,
+                 transforms=None,
+                 batch_size=64,
+                 n_batch_per_epoch=1000):
+        super().__init__(x_range, y_range, avg_radius_range, n_range, tasks, transforms, batch_size, n_batch_per_epoch)
+        if 1 in self.n_range:
+            self.n_range.remove(1)
+        if 2 in self.n_range:
+            self.n_range.remove(2)
+
+    def __getitem__(self, idx):
+        # Randomly pick parameters for polygon generation
+        x_ctr = random.uniform(*self.x_range)
+        y_ctr = random.uniform(*self.y_range)
+        avg_radius = random.choice(self.avg_radius_range)
+        irregularity = random.random()
+        spikeyness = random.random()
+
+        # Balance between Points, LineStrings, and Polygons according to the validation set
+        prob = random.random()
+        if prob < 4 / 188:  #
+            p = self._gen_poly(x_ctr, y_ctr, avg_radius, irregularity, spikeyness, 1)
+        elif prob < 12 / 188:  # line
+            p = self._gen_poly(x_ctr, y_ctr, avg_radius, irregularity, spikeyness, 2)
+        elif prob < 20 / 188:  # colinear line
+            p = self._gen_poly(x_ctr, y_ctr, avg_radius, irregularity, spikeyness, 2)
+        elif prob < 56 / 188:  # other line (polygon - one line segment)
+            n = random.choice(self.n_range)
+            p = self._gen_poly(x_ctr, y_ctr, avg_radius, irregularity, spikeyness, n)
+            p = LineString(p.boundary.coords[:-1])
+        else:  # polygon
+            n = random.choice(self.n_range)
+            p = self._gen_poly(x_ctr, y_ctr, avg_radius, irregularity, spikeyness, n)
+
+        # Apply transforms
+        for tr in self.transforms:
+            p = tr(p)
+
+        # Compute labels for each task
+        labels = [task.get_label(p) for task in self.tasks]
+
+        return p, labels
+
+
 class PolygonTestset(Dataset):
     """Pytorch dataset reading polygons from a JSON file.
 
@@ -254,14 +327,14 @@ class PolygonDataModule(pl.LightningDataModule):
         self.n_workers = conf["n_workers"]
 
     def setup(self, stage=None):  # pylint: disable=unused-argument
-        self.poly_dataset = PolygonDataset(x_range=self.x_range,
-                                           y_range=self.y_range,
-                                           avg_radius_range=self.avg_radius_range,
-                                           n_range=self.n_range,
-                                           tasks=self.tasks,
-                                           transforms=self.transforms,
-                                           batch_size=self.batch_size,
-                                           n_batch_per_epoch=self.n_batch_per_epoch)
+        self.poly_dataset = PolygonDatasetV2(x_range=self.x_range,
+                                             y_range=self.y_range,
+                                             avg_radius_range=self.avg_radius_range,
+                                             n_range=self.n_range,
+                                             tasks=self.tasks,
+                                             transforms=self.transforms,
+                                             batch_size=self.batch_size,
+                                             n_batch_per_epoch=self.n_batch_per_epoch)
         self.val_dataset = PolygonTestset(datafile=self.val_set_file, tasks=self.tasks, transforms=self.transforms)
         self.test_dataset = PolygonTestset(datafile=self.test_set_file, tasks=self.tasks, transforms=self.transforms)
 

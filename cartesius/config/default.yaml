@@ -38,6 +38,7 @@ n_batch_per_epoch: 1000
 max_time: "00:12:00:00"   # Maximum 12h of training
 n_workers: 8
 watch_model: True
+early_stoppping: True
 
 # Optimizer & LR Scheduler
 lr: 3e-4

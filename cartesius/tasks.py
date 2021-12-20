@@ -3,6 +3,9 @@ import torch.nn.functional as F
 from cartesius.modeling import ScoreHead
 
 
+EPS = 1e-9
+
+
 class Task:
     """Base class for Tasks.
 
@@ -91,7 +94,7 @@ class GuessConvexity(Task):
     def get_label(self, polygon):
         convex_p = polygon.convex_hull
 
-        if convex_p.area == 0:
+        if convex_p.area < EPS:
             return 1
         else:
             return polygon.area / convex_p.area

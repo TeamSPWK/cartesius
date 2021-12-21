@@ -1,0 +1,9 @@
+# Metadata
+parent_config: "default.yaml"
+description: "Best configuration to train a ResNet."
+
+# Model
+model_name: "resnet"
+
+# Data handling
+tokenizer: "raster"

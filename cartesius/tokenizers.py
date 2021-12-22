@@ -259,17 +259,15 @@ class PolarTokenizer(Tokenizer):
         if pad_size > self.max_seq_len:
             raise RuntimeError(f"Polygons are too big to be tokenized ({pad_size} > {self.max_seq_len})")
         masks = []
-        rs = []
-        thetas = []
+        tokens = []
         for p_coords in poly_coords:
             m = [1 if i < len(p_coords) else 0 for i in range(pad_size)]
             r, theta = [self.pad(x, pad_size) for x in self.tokenize_each(p_coords)]
+            token = np.stack([r, theta], axis=-1)
             masks.append(m)
-            rs.append(r)
-            thetas.append(theta)
+            tokens.append(token)
         return {
-            "r": torch.tensor(rs, dtype=torch.float32),
-            "theta": torch.tensor(thetas, dtype=torch.float32),
+            "polygon": torch.tensor(tokens, dtype=torch.float32),
             "mask": torch.tensor(masks, dtype=torch.bool),
         }
 

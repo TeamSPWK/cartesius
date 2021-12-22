@@ -134,13 +134,17 @@ class GraphTokenizer(Tokenizer):
 
 
 class AugmentTokenizer(Tokenizer):
-    """Tokenizer for Transformer model.
+    """Tokenizer for Transformer model, with vertex augmentation.
 
     This Tokenizer augment / remove some vertices to certain sequence length.
     When we need to augment vertices, it generates priority indices with edge length,
     and assigns number of vertices.
     When we need to remove vertices, it generates priority indices with cosine value,
     and itertively removes vertices.
+
+    Args:
+        max_seq_len (int): Maximum sequence length. An exception will be raised if you
+            try to tokenize a polygon with more points than this.
     """
 
     def __init__(self, max_seq_len, *args, **kwargs):  # pylint: disable=unused-argument
@@ -221,8 +225,58 @@ class AugmentTokenizer(Tokenizer):
         }
 
 
+class PolarTokenizer(Tokenizer):
+    """Tokenizer for Transformer model, with Polar coordinates
+
+    This Tokenizer transforms Cartesian coordinates into polar coordinates.
+    r is the distance from a reference point (0, 0).
+    theta is the angle from a reference direction (1, 0).
+
+    Args:
+        max_seq_len (int): Maximum sequence length. An exception will be raised if you
+            try to tokenize a polygon with more points than this.
+    """
+
+    def __init__(self, max_seq_len, *args, **kwargs):  # pylint: disable=unused-argument
+        super().__init__()
+
+        self.max_seq_len = max_seq_len
+
+    @staticmethod
+    def tokenize_each(p_coords):
+        arr = np.array(p_coords)
+        r = np.linalg.norm(arr, axis=-1)
+        theta = np.arctan2(arr[:, 1], arr[:, 0])
+        return r, theta
+
+    @staticmethod
+    def pad(arr, pad_size):
+        return np.pad(arr, (0, pad_size - len(arr)), mode="constant", constant_values=0)
+
+    def tokenize(self, polygons):
+        poly_coords = [list(p.boundary.coords[:-1]) if isinstance(p, Polygon) else list(p.coords) for p in polygons]
+        pad_size = max(len(p_coords) for p_coords in poly_coords)
+        if pad_size > self.max_seq_len:
+            raise RuntimeError(f"Polygons are too big to be tokenized ({pad_size} > {self.max_seq_len})")
+        masks = []
+        rs = []
+        thetas = []
+        for p_coords in poly_coords:
+            m = [1 if i < len(p_coords) else 0 for i in range(pad_size)]
+            r, theta = [self.pad(x, pad_size) for x in self.tokenize_each(p_coords)]
+            masks.append(m)
+            rs.append(r)
+            thetas.append(theta)
+        return {
+            "r": torch.tensor(rs, dtype=torch.float32),
+            "theta": torch.tensor(thetas, dtype=torch.float32),
+            "mask": torch.tensor(masks, dtype=torch.bool),
+        }
+
+
 TOKENIZERS = {
     "transformer": TransformerTokenizer,
     "graph": GraphTokenizer,
     "augment": AugmentTokenizer,
+    "polar": PolarTokenizer
 }

@@ -1,3 +1,4 @@
+import numpy as np
 from shapely.geometry import Polygon
 import torch
 
@@ -132,7 +133,96 @@ class GraphTokenizer(Tokenizer):
         }
 
 
+class AugmentTokenizer(Tokenizer):
+    """Tokenizer for Transformer model.
+
+    This Tokenizer augment / remove some vertices to certain sequence length.
+    When we need to augment vertices, it generates priority indices with edge length,
+    and assigns number of vertices.
+    When we need to remove vertices, it generates priority indices with cosine value,
+    and itertively removes vertices.
+    """
+
+    def __init__(self, max_seq_len, *args, **kwargs):  # pylint: disable=unused-argument
+        super().__init__()
+        self.max_seq_len = max_seq_len
+
+    @staticmethod
+    def remove_vertices(arr, edge_vectors, req_vertices, tolerance):
+        if np.linalg.norm(arr[-1] - arr[0]) < tolerance:
+            next_vectors = edge_vectors / np.expand_dims(np.linalg.norm(edge_vectors, axis=-1), axis=-1) + 1e-4
+            prev_vectors = -np.roll(edge_vectors, 1, axis=0)
+            cosine = np.dot(next_vectors, prev_vectors.T).diagonal()
+            priority_indices = np.argsort(-cosine)
+            adjusted_arr = np.delete(arr[:-1], priority_indices[req_vertices:], axis=0)
+            adjusted_arr = np.concatenate([adjusted_arr, adjusted_arr[:1]])
+        else:
+            next_norms = np.expand_dims(np.linalg.norm(edge_vectors[1:], axis=-1), axis=-1) + 1e-4
+            next_vectors = edge_vectors[1:] / next_norms
+            prev_norms = np.expand_dims(np.linalg.norm(edge_vectors[:-1], axis=-1), axis=-1) + 1e-4
+            prev_vectors = -edge_vectors[:-1] / prev_norms
+            cosine = np.dot(next_vectors, prev_vectors.T).diagonal()
+            cosine = np.concatenate([np.array([0]), cosine, np.array([0])])
+            priority_indices = np.argsort(-cosine)
+            adjusted_arr = np.delete(arr, priority_indices[req_vertices:], axis=0)
+        return adjusted_arr
+
+    @staticmethod
+    def augment_vertices(arr, edge_vectors, req_vertices):
+        edge_lengths = np.linalg.norm(edge_vectors, axis=-1)
+        req_vertices_per_edges = req_vertices * (edge_lengths / np.sum(edge_lengths) + 1e-4)
+        req_vertices_per_edges_decimal = req_vertices_per_edges - np.floor(req_vertices_per_edges)
+        rounded_req_vertices_per_edges = np.floor(req_vertices_per_edges).astype(np.int)
+        deficient_req_vertices = req_vertices - np.sum(rounded_req_vertices_per_edges)
+        priority_indices = np.argsort(-req_vertices_per_edges_decimal)
+        for i in range(deficient_req_vertices):
+            rounded_req_vertices_per_edges[priority_indices[i % len(priority_indices)]] += 1
+        rounded_req_edges_per_edges = rounded_req_vertices_per_edges + 1
+        interpolate_vectors = edge_vectors / np.expand_dims((rounded_req_edges_per_edges), axis=-1) + 1e-4
+        vertices_list = []
+        for idx, (interpolate_vector,
+                  rounded_req_edges_per_edge) in enumerate(zip(interpolate_vectors, rounded_req_edges_per_edges)):
+            vertices_list.append(arr[idx] +
+                                 interpolate_vector * np.expand_dims(np.arange(rounded_req_edges_per_edge), axis=-1))
+        adjusted_arr = np.concatenate(vertices_list + [arr[-1:]])
+        return adjusted_arr
+
+    def tokenize_each(self, p, tolerance, max_seq_len):
+        if isinstance(p, Polygon):
+            arr = np.array(p.boundary.coords[:-1])
+        else:
+            arr = np.array(p.coords)
+        if (arr == 0).all():
+            adjusted_arr = np.zeros((max_seq_len, 2))
+            return adjusted_arr
+        if len(arr) < 2:
+            adjusted_arr = np.zeros((max_seq_len, 2))
+            return adjusted_arr
+        req_vertices = max_seq_len - len(arr)
+        edge_vectors = arr[1:] - arr[:-1]
+        if np.linalg.norm(arr[-1] - arr[0]) < tolerance:
+            req_vertices += 1
+        if req_vertices == 0:
+            adjusted_arr = arr
+        elif req_vertices < 0:
+            adjusted_arr = self.remove_vertices(arr, edge_vectors, req_vertices, tolerance)
+        else:
+            adjusted_arr = self.augment_vertices(arr, edge_vectors, req_vertices)
+        if np.linalg.norm(adjusted_arr[-1] - adjusted_arr[0]) < 1e-4:
+            adjusted_arr = adjusted_arr[:-1]
+        return adjusted_arr
+
+    def tokenize(self, polygons):
+        tolerance = 1e-4
+        x = torch.tensor([self.tokenize_each(p, tolerance, self.max_seq_len) for p in polygons], dtype=torch.float32)
+        return {
+            "polygon": x,
+            "mask": torch.ones((x.shape[:-1]), dtype=torch.bool),
+        }
+
+
 TOKENIZERS = {
     "transformer": TransformerTokenizer,
     "graph": GraphTokenizer,
+    "augment": AugmentTokenizer,
 }

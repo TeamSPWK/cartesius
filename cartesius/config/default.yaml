@@ -17,6 +17,7 @@ kaggle_submission_file: "submission.csv"
 
 # Model
 model_name: "transformer"
+d_feature: 2
 d_model: 128
 max_seq_len: 256
 n_heads: 8

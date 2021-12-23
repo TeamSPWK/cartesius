@@ -1,0 +1,10 @@
+# Metadata
+parent_config: "graph_base.yaml"
+description: "Configuration to train a graph-based model with cartesian & polar coordinates."
+
+# Model
+d_feature: 4
+
+# Data handling
+tokenizer: "graph_polar"
+append_original: True

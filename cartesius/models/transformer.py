@@ -6,6 +6,7 @@ class Transformer(nn.Module):
     """Basic Transformer implementation for Cartesius benchmark.
 
     Args:
+        d_feature (int): Dimensions of the input features.
         d_model (int): Dimension for the Transformer Encoder Layer.
         max_seq_len (int): Maximum sequence length.
         n_heads (int): Number of attention heads for the Transformer Encoder Layer.
@@ -18,11 +19,11 @@ class Transformer(nn.Module):
             for mean pooling over all tokens).
     """
 
-    def __init__(self, d_model, max_seq_len, n_heads, d_ff, dropout, activation, n_layers, pooling):
+    def __init__(self, d_feature, d_model, max_seq_len, n_heads, d_ff, dropout, activation, n_layers, pooling):
         super().__init__()
 
         # Embeddings
-        self.coord_embeds = nn.Linear(2, d_model, bias=False)
+        self.coord_embeds = nn.Linear(d_feature, d_model, bias=False)
         self.position_embeds = nn.Embedding(max_seq_len, d_model)
 
         # Transformer encoder

@@ -1,0 +1,7 @@
+# Metadata
+parent_config: "transformer.yaml"
+description: "Best configuration to train a basic Transformer."
+
+# Data handling
+tokenizer: "transformer_polar"
+append_original: False

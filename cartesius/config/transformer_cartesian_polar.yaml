@@ -1,0 +1,10 @@
+# Metadata
+parent_config: "transformer.yaml"
+description: "Configuration to train a Transformer with cartesian & polar coordinates."
+
+# Model
+d_feature: 4
+
+# Data handling
+tokenizer: "transformer_polar"
+append_original: True

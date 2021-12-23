@@ -13,16 +13,17 @@ class Geometric(nn.Module):
     Geometric and extracting a graph representation as features.
 
     Args:
+        d_feature (int): Dimensions of the input features.
         d_model (int): Dimension of the final features.
         d_ff (int)): Hidden size of the graph model.
         dropout (float): Dropout for the graph model.
         n_layers (int): Number of layers in the graph model.
     """
 
-    def __init__(self, d_model, d_ff, dropout, n_layers):
+    def __init__(self, d_feature, d_model, d_ff, dropout, n_layers):
         super().__init__()
 
-        self.geom_model = GraphSAGE(in_channels=2,
+        self.geom_model = GraphSAGE(in_channels=d_feature,
                                     hidden_channels=d_ff,
                                     num_layers=n_layers,
                                     out_channels=d_model,

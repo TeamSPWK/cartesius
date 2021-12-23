@@ -2,6 +2,10 @@ import numpy as np
 from shapely.geometry import Polygon
 import torch
 
+from cartesius.converters import AugmentConverter
+from cartesius.converters import pad_arr
+from cartesius.converters import PolarConverter
+
 try:
     # Optional, have to install additional dependencies for this to work
     from torch_geometric.data import Batch
@@ -133,7 +137,7 @@ class GraphTokenizer(Tokenizer):
         }
 
 
-class AugmentTokenizer(Tokenizer):
+class TransformerAugmentTokenizer(Tokenizer):
     """Tokenizer for Transformer model, with vertex augmentation.
 
     This Tokenizer augment / remove some vertices to certain sequence length.
@@ -150,83 +154,26 @@ class AugmentTokenizer(Tokenizer):
     def __init__(self, max_seq_len, *args, **kwargs):  # pylint: disable=unused-argument
         super().__init__()
         self.max_seq_len = max_seq_len
+        self.augment_converter = AugmentConverter(max_seq_len)
 
-    @staticmethod
-    def remove_vertices(arr, edge_vectors, req_vertices, tolerance):
-        if np.linalg.norm(arr[-1] - arr[0]) < tolerance:
-            next_vectors = edge_vectors / np.expand_dims(np.linalg.norm(edge_vectors, axis=-1), axis=-1) + 1e-4
-            prev_vectors = -np.roll(edge_vectors, 1, axis=0)
-            cosine = np.dot(next_vectors, prev_vectors.T).diagonal()
-            priority_indices = np.argsort(-cosine)
-            adjusted_arr = np.delete(arr[:-1], priority_indices[req_vertices:], axis=0)
-            adjusted_arr = np.concatenate([adjusted_arr, adjusted_arr[:1]])
-        else:
-            next_norms = np.expand_dims(np.linalg.norm(edge_vectors[1:], axis=-1), axis=-1) + 1e-4
-            next_vectors = edge_vectors[1:] / next_norms
-            prev_norms = np.expand_dims(np.linalg.norm(edge_vectors[:-1], axis=-1), axis=-1) + 1e-4
-            prev_vectors = -edge_vectors[:-1] / prev_norms
-            cosine = np.dot(next_vectors, prev_vectors.T).diagonal()
-            cosine = np.concatenate([np.array([0]), cosine, np.array([0])])
-            priority_indices = np.argsort(-cosine)
-            adjusted_arr = np.delete(arr, priority_indices[req_vertices:], axis=0)
-        return adjusted_arr
-
-    @staticmethod
-    def augment_vertices(arr, edge_vectors, req_vertices):
-        edge_lengths = np.linalg.norm(edge_vectors, axis=-1)
-        req_vertices_per_edges = req_vertices * (edge_lengths / np.sum(edge_lengths) + 1e-4)
-        req_vertices_per_edges_decimal = req_vertices_per_edges - np.floor(req_vertices_per_edges)
-        rounded_req_vertices_per_edges = np.floor(req_vertices_per_edges).astype(np.int)
-        deficient_req_vertices = req_vertices - np.sum(rounded_req_vertices_per_edges)
-        priority_indices = np.argsort(-req_vertices_per_edges_decimal)
-        for i in range(deficient_req_vertices):
-            rounded_req_vertices_per_edges[priority_indices[i % len(priority_indices)]] += 1
-        rounded_req_edges_per_edges = rounded_req_vertices_per_edges + 1
-        interpolate_vectors = edge_vectors / np.expand_dims((rounded_req_edges_per_edges), axis=-1) + 1e-4
-        vertices_list = []
-        for idx, (interpolate_vector,
-                  rounded_req_edges_per_edge) in enumerate(zip(interpolate_vectors, rounded_req_edges_per_edges)):
-            vertices_list.append(arr[idx] +
-                                 interpolate_vector * np.expand_dims(np.arange(rounded_req_edges_per_edge), axis=-1))
-        adjusted_arr = np.concatenate(vertices_list + [arr[-1:]])
-        return adjusted_arr
-
-    def tokenize_each(self, p, tolerance, max_seq_len):
+    def tokenize_each(self, p):
         if isinstance(p, Polygon):
-            arr = np.array(p.boundary.coords[:-1])
+            x_arr, y_arr = [np.array(x)[:-1] for x in p.boundary.xy]
         else:
-            arr = np.array(p.coords)
-        if (arr == 0).all():
-            adjusted_arr = np.zeros((max_seq_len, 2))
-            return adjusted_arr
-        if len(arr) < 2:
-            adjusted_arr = np.zeros((max_seq_len, 2))
-            return adjusted_arr
-        req_vertices = max_seq_len - len(arr)
-        edge_vectors = arr[1:] - arr[:-1]
-        if np.linalg.norm(arr[-1] - arr[0]) < tolerance:
-            req_vertices += 1
-        if req_vertices == 0:
-            adjusted_arr = arr
-        elif req_vertices < 0:
-            adjusted_arr = self.remove_vertices(arr, edge_vectors, req_vertices, tolerance)
-        else:
-            adjusted_arr = self.augment_vertices(arr, edge_vectors, req_vertices)
-        if np.linalg.norm(adjusted_arr[-1] - adjusted_arr[0]) < 1e-4:
-            adjusted_arr = adjusted_arr[:-1]
-        return adjusted_arr
+            x_arr, y_arr = [np.array(x) for x in p.xy]
+        new_arr = np.stack(self.augment_converter(x_arr, y_arr), axis=-1)
+        return new_arr
 
     def tokenize(self, polygons):
-        tolerance = 1e-4
-        x = torch.tensor([self.tokenize_each(p, tolerance, self.max_seq_len) for p in polygons], dtype=torch.float32)
+        x = torch.tensor([self.tokenize_each(p) for p in polygons], dtype=torch.float32)
         return {
             "polygon": x,
             "mask": torch.ones((x.shape[:-1]), dtype=torch.bool),
         }
 
 
-class PolarTokenizer(Tokenizer):
-    """Tokenizer for Transformer model, with Polar coordinates
+class TransformerPolarTokenizer(Tokenizer):
+    """Tokenizer for Transformer model, with Polar coordinates.
 
     This Tokenizer transforms Cartesian coordinates into polar coordinates.
     r is the distance from a reference point (0, 0).
@@ -235,36 +182,39 @@ class PolarTokenizer(Tokenizer):
     Args:
         max_seq_len (int): Maximum sequence length. An exception will be raised if you
             try to tokenize a polygon with more points than this.
+        append_original (bool): Whether if use original features, or just use generated features.
     """
 
-    def __init__(self, max_seq_len, *args, **kwargs):  # pylint: disable=unused-argument
+    def __init__(self, max_seq_len, append_original, *args, **kwargs):  # pylint: disable=unused-argument
         super().__init__()
-
         self.max_seq_len = max_seq_len
-
-    @staticmethod
-    def tokenize_each(p_coords):
-        arr = np.array(p_coords)
-        r = np.linalg.norm(arr, axis=-1)
-        theta = np.arctan2(arr[:, 1], arr[:, 0])
-        return r, theta
-
-    @staticmethod
-    def pad(arr, pad_size):
-        return np.pad(arr, (0, pad_size - len(arr)), mode="constant", constant_values=0)
+        self.append_original = append_original
+        self.polar_converter = PolarConverter()
 
     def tokenize(self, polygons):
-        poly_coords = [list(p.boundary.coords[:-1]) if isinstance(p, Polygon) else list(p.coords) for p in polygons]
-        pad_size = max(len(p_coords) for p_coords in poly_coords)
+        x_arrs = []
+        y_arrs = []
+        for p in polygons:
+            if isinstance(p, Polygon):
+                x_arr, y_arr = [np.array(x)[:-1] for x in p.boundary.xy]
+            else:
+                x_arr, y_arr = [np.array(x) for x in p.xy]
+            x_arrs.append(x_arr)
+            y_arrs.append(y_arr)
+        pad_size = max(len(x_arr) for x_arr in x_arrs)
         if pad_size > self.max_seq_len:
             raise RuntimeError(f"Polygons are too big to be tokenized ({pad_size} > {self.max_seq_len})")
         masks = []
         tokens = []
-        for p_coords in poly_coords:
-            m = [1 if i < len(p_coords) else 0 for i in range(pad_size)]
-            r, theta = [self.pad(x, pad_size) for x in self.tokenize_each(p_coords)]
-            token = np.stack([r, theta], axis=-1)
+        for x_arr, y_arr in zip(x_arrs, y_arrs):
+            m = [1 if i < len(x_arr) else 0 for i in range(pad_size)]
+            x_arr, y_arr = [pad_arr(x, pad_size) for x in (x_arr, y_arr)]
+            r_arr, theta_arr = self.polar_converter(x_arr, y_arr)
             masks.append(m)
+            if self.append_original:
+                token = np.stack([x_arr, y_arr, r_arr, theta_arr], axis=-1)
+            else:
+                token = np.stack([r_arr, theta_arr], axis=-1)
             tokens.append(token)
         return {
             "polygon": torch.tensor(tokens, dtype=torch.float32),
@@ -272,9 +222,56 @@ class PolarTokenizer(Tokenizer):
         }
 
 
+class GraphPolarTokenizer(Tokenizer):
+    """Tokenizer for Graph-based model, with Polar coordinates.
+
+    This Tokenizer transforms Cartesian coordinates into polar coordinates,
+    and generate tokens that is readable for Graph-based model.
+
+    Args:
+        append_original (bool): Whether if use original features, or just use generated features.
+    """
+
+    def __init__(self, append_original, *args, **kwargs):  # pylint: disable=unused-argument
+        super().__init__()
+        self.append_original = append_original
+        self.polar_converter = PolarConverter()
+
+    def tokenize(self, polygons):
+        p_data = []
+        for p in polygons:
+            if isinstance(p, Polygon):
+                x_arr, y_arr = [np.array(x)[:-1] for x in p.boundary.xy]
+            else:
+                x_arr, y_arr = [np.array(x) for x in p.xy]
+            r_arr, theta_arr = self.polar_converter(x_arr, y_arr)
+            if self.append_original:
+                c = np.stack([x_arr, y_arr, r_arr, theta_arr], axis=-1)
+            else:
+                c = np.stack([r_arr, theta_arr], axis=-1)
+
+            if isinstance(p, Polygon):
+                e = torch.cat([(torch.eye(2, dtype=torch.long) + i) % len(c) for i in range(len(c))], dim=-1)
+            else:
+                if len(c) == 1:
+                    e = torch.zeros((2, 1), dtype=torch.long)
+                else:
+                    e = torch.cat([(torch.eye(2, dtype=torch.long) + i) % len(c) for i in range(len(c) - 1)], dim=-1)
+            x = torch.tensor(c, dtype=torch.float32)
+            p_data.append(Data(x=x, edge_index=e))
+
+        b = Batch.from_data_list(p_data)
+        return {
+            "x": b.x,
+            "edge_index": b.edge_index,
+            "batch_index": b.batch,
+        }
+
+
 TOKENIZERS = {
     "transformer": TransformerTokenizer,
     "graph": GraphTokenizer,
-    "augment": AugmentTokenizer,
-    "polar": PolarTokenizer
+    "transformer_augment": TransformerAugmentTokenizer,
+    "transformer_polar": TransformerPolarTokenizer,
+    "graph_polar": GraphPolarTokenizer
 }

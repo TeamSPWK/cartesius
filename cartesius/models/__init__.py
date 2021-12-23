@@ -6,6 +6,7 @@ from .transformer import Transformer
 def create_model(model_name, conf):
     if model_name == "transformer":
         return Transformer(
+            d_feature=conf["d_feature"],
             d_model=conf["d_model"],
             max_seq_len=conf["max_seq_len"],
             n_heads=conf["n_heads"],
@@ -17,6 +18,7 @@ def create_model(model_name, conf):
         )
     elif model_name == "graph":
         return Geometric(
+            d_feature=conf["d_feature"],
             d_model=conf["d_model"],
             d_ff=conf["d_ff"],
             dropout=conf["dropout"],

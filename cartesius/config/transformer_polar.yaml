@@ -1,6 +1,6 @@
 # Metadata
 parent_config: "transformer.yaml"
-description: "Best configuration to train a basic Transformer."
+description: "Configuration to train a Transformer with polar coordinates."
 
 # Data handling
 tokenizer: "transformer_polar"

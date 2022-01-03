@@ -141,18 +141,18 @@ class AugmentConverter(Converter):
         req_vertices = self.max_seq_len - len(arr)
         if np.linalg.norm(arr[-1] - arr[0]) == 0:
             repeated_last_vertex = True
-            x_arr, y_arr = x_arr[:-1], y_arr[:-1]
         else:
             repeated_last_vertex = False
+            x_arr, y_arr = np.concatenate([x_arr, [x_arr[0]]]), np.concatenate([y_arr, [y_arr[0]]])
         if req_vertices > 0:
             new_x_arr, new_y_arr = self.augment_vertices(x_arr, y_arr, req_vertices)
         elif req_vertices < 0:
             new_x_arr, new_y_arr = self.remove_vertices(x_arr, y_arr, req_vertices)
         else:
             new_x_arr, new_y_arr = arr[:, 0], arr[:, 1]
-        if repeated_last_vertex:
-            new_x_arr = np.concatenate([new_x_arr, new_x_arr[:1]])
-            new_y_arr = np.concatenate([new_y_arr, new_y_arr[:1]])
+        if not repeated_last_vertex:
+            new_x_arr = new_x_arr[:-1]
+            new_y_arr = new_y_arr[:-1]
         return new_x_arr, new_y_arr
 
 

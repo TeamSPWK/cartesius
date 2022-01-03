@@ -62,7 +62,7 @@ def test_transformer_tokenizer_batched_polygons():
 
 
 def test_transformer_tokenizer_too_much_points():
-    tokenizer = TransformerTokenizer(max_seq_len=256)
+    tokenizer = TransformerTokenizer(max_seq_len=32)
     p = Point((0, 0)).buffer(1, resolution=64)
 
     with pytest.raises(RuntimeError):
@@ -212,7 +212,7 @@ def test_transformer_polar_tokenizer_batched_polygons():
 
 
 def test_transformer_polar_tokenizer_too_much_points():
-    tokenizer = TransformerPolarTokenizer(max_seq_len=256, append_original=False)
+    tokenizer = TransformerPolarTokenizer(max_seq_len=32, append_original=False)
     p = Point((0, 0)).buffer(1, resolution=64)
 
     with pytest.raises(RuntimeError):

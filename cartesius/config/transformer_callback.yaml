@@ -1,0 +1,6 @@
+# Metadata
+parent_config: "transformer.yaml"
+
+# Callback
+callbacks: ["transformer_hard_sample_plot", "label_histogram_plot"]
+hard_n: 10

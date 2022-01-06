@@ -7,6 +7,7 @@ from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
 import torch
 from torch import nn
 
+from cartesius.callbacks import CALLBACKS
 from cartesius.data import PolygonDataModule
 from cartesius.models import create_model
 from cartesius.tasks import TASKS
@@ -53,8 +54,8 @@ class PolygonEncoder(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):  # pylint: disable=unused-argument
         labels = batch.pop("labels")
-
         preds = self.forward(batch)
+        batch["labels"] = labels
 
         losses = []
         for task_name, task, pred, label, s in zip(self.conf.tasks, self.tasks, preds, labels, self.tasks_scales):
@@ -69,6 +70,7 @@ class PolygonEncoder(pl.LightningModule):
     def validation_step(self, batch, batch_idx):  # pylint: disable=unused-argument
         labels = batch.pop("labels")
         preds = self.forward(batch)
+        batch["labels"] = labels
 
         losses = []
         for task_name, task, pred, label, s in zip(self.conf.tasks, self.tasks, preds, labels, self.tasks_scales):
@@ -82,8 +84,8 @@ class PolygonEncoder(pl.LightningModule):
 
     def test_step(self, batch, batch_idx):  # pylint: disable=unused-argument
         labels = batch.pop("labels")
-
         preds = self.forward(batch)
+        batch["labels"] = labels
 
         losses = []
         for task_name, task, pred, label, s in zip(self.conf.tasks, self.tasks, preds, labels, self.tasks_scales):
@@ -154,7 +156,8 @@ def main():
     if conf.watch_model:
         wandb_logger.watch(model, log="all")
     mc = ModelCheckpoint(monitor="val_loss", mode="min", filename="{step}-{val_loss:.4f}")
-    callbacks = [mc]
+    callbacks = [CALLBACKS[cb](conf, tasks) for cb in conf.callbacks]
+    callbacks.append(mc)
     if conf.early_stoppping:
         callbacks.append(EarlyStopping(monitor="val_loss", mode="min", verbose=True))
     trainer = pl.Trainer(

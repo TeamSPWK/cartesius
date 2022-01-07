@@ -26,14 +26,15 @@ class CustomCallback(Callback):
 class TransformerHardSamplePlotCallback(CustomCallback):
     """Custom callback that plots hard examples
     """
-
-    def plot_one(self, subplots, df, i, j, col):
+    @staticmethod
+    def plot_one(subplots, df, i, j, col):
         ax = subplots[i][j]
         ax.axis("off")
         ax.set_aspect("equal")
         ax.plot(*np.swapaxes(df[col][i], 0, 1))
 
-    def plot_batch(self, df, title, projection):
+    @classmethod
+    def plot_batch(cls, df, title, projection):
         fig = plt.figure(figsize=[2 * x for x in df.shape])
         fig.suptitle(title, fontsize=16)
         subplots = fig.subplots(*df.shape, subplot_kw={"projection": projection})
@@ -43,12 +44,13 @@ class TransformerHardSamplePlotCallback(CustomCallback):
         df.reset_index(drop=True, inplace=True)
         for i in df.index:
             for j, col in enumerate(df.columns):
-                self.plot_one(subplots, df, i, j, col)
+                cls.plot_one(subplots, df, i, j, col)
         wandb.log({f"{title}": wandb.Image(plt)})
         plt.close()
 
-    def poly_coords_from_feature(self, x):
-        coords = ma.array(x["polygon"], mask=np.tile(~x["mask"], (1, 2))).compressed().reshape(-1, 2)
+    @staticmethod
+    def poly_coords_from_feature(x):
+        coords = ma.array(x["polygon"], mask=np.tile(np.logical_not(x["mask"]), (2,1)).T).compressed().reshape(-1, 2)
         # if coords[0] != coords[-1]:
         #     coords = np.concatenate([coords, [coords[0]]])
         return coords
@@ -113,7 +115,8 @@ class LabelHistogramPlotCallback(CustomCallback):
 
         return getattr(self, f"{data_split_type}_table")
 
-    def update_histogram(self, table):
+    @staticmethod
+    def update_histogram(table):
         for task_name in table.columns:
             wandb.log({
                 f"{table.data_split_type}_{task_name}":

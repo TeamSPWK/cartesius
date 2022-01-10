@@ -26,6 +26,7 @@ class CustomCallback(Callback):
 class TransformerHardSamplePlotCallback(CustomCallback):
     """Custom callback that plots hard examples
     """
+
     @staticmethod
     def plot_one(subplots, df, i, j, col):
         ax = subplots[i][j]
@@ -50,7 +51,7 @@ class TransformerHardSamplePlotCallback(CustomCallback):
 
     @staticmethod
     def poly_coords_from_feature(x):
-        coords = ma.array(x["polygon"], mask=np.tile(np.logical_not(x["mask"]), (2,1)).T).compressed().reshape(-1, 2)
+        coords = ma.array(x["polygon"], mask=np.tile(np.logical_not(x["mask"]), (2, 1)).T).compressed().reshape(-1, 2)
         # if coords[0] != coords[-1]:
         #     coords = np.concatenate([coords, [coords[0]]])
         return coords

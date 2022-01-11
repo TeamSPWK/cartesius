@@ -1,0 +1,19 @@
+# Metadata
+parent_config: "default.yaml"
+seed: 192
+description: "Faustian."
+
+# Model
+d_model: 16
+n_heads: 4
+d_ff: 16
+n_layers: 3
+
+# Tasks
+task_dropout: 0
+
+# Training
+lr: 5e-4
+auto_lr_find: True
+n_batch_per_epoch: 1000
+early_stoppping: False

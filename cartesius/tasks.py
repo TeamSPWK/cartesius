@@ -3,6 +3,8 @@ import torch.nn.functional as F
 
 from cartesius.modeling import ScoreHead
 
+EPS = 1e-9
+
 
 class Task:
     """Base class for Tasks.
@@ -82,18 +84,18 @@ class GuessSize(Task):
         return ScoreHead(self.d_in, self.dropout, 2)
 
 
-class GuessConcavity(Task):
-    """Task predicting the concavity of the polygon.
+class GuessConvexity(Task):
+    """Task predicting the convexity of the polygon.
 
-    Concavity represents how much concave a polygon is. It's computed as the area
+    Convexity represents how much convex a polygon is. It's computed as the area
     of the current polygon divided by the area of its convex hull.
     """
 
     def get_label(self, polygon):
         convex_p = polygon.convex_hull
 
-        if convex_p.area == 0:
-            return 0.
+        if convex_p.area < EPS:
+            return 1
         else:
             return max(polygon.area / convex_p.area, 0.)
 
@@ -170,7 +172,7 @@ TASKS = {
     "area": GuessArea,
     "perimeter": GuessPerimeter,
     "size": GuessSize,
-    "concavity": GuessConcavity,
+    "convexity": GuessConvexity,
     "min_clear": GuessMinimumClearance,
     "centroid": GuessCentroid,
     "ombr_ratio": GuessOmbrRatio,

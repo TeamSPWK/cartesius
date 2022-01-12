@@ -6,5 +6,4 @@ description: "Configuration to train a Transformer with cartesian & polar coordi
 d_feature: 4
 
 # Data handling
-tokenizer: "transformer_polar"
-append_original: True
+tokenizer: "transformer_carte_polar"

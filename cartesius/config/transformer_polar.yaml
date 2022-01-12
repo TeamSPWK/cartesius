@@ -4,4 +4,3 @@ description: "Configuration to train a Transformer with polar coordinates."
 
 # Data handling
 tokenizer: "transformer_polar"
-append_original: False

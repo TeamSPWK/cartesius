@@ -158,7 +158,7 @@ class TransformerAugmentTokenizer(Tokenizer):
 
     def tokenize_each(self, p):
         if isinstance(p, Polygon):
-            x_arr, y_arr = [np.array(x)[:-1] for x in p.boundary.xy]
+            x_arr, y_arr = [np.array(x) for x in p.boundary.xy]
         else:
             x_arr, y_arr = [np.array(x) for x in p.xy]
         new_arr = np.stack(self.augment_converter(x_arr, y_arr), axis=-1)
@@ -176,19 +176,19 @@ class TransformerPolarTokenizer(Tokenizer):
     """Tokenizer for Transformer model, with Polar coordinates.
 
     This Tokenizer transforms Cartesian coordinates into polar coordinates.
-    r is the distance from a reference point (0, 0).
+
+    Its polygon has 2 features : theta, r.
     theta is the angle from a reference direction (1, 0).
+    r is the distance from a reference point (0, 0).
 
     Args:
         max_seq_len (int): Maximum sequence length. An exception will be raised if you
             try to tokenize a polygon with more points than this.
-        append_original (bool): Whether if use original features, or just use generated features.
     """
 
-    def __init__(self, max_seq_len, append_original, *args, **kwargs):  # pylint: disable=unused-argument
+    def __init__(self, max_seq_len, *args, **kwargs):  # pylint: disable=unused-argument
         super().__init__()
         self.max_seq_len = max_seq_len
-        self.append_original = append_original
         self.polar_converter = PolarConverter()
 
     def tokenize(self, polygons):
@@ -196,7 +196,7 @@ class TransformerPolarTokenizer(Tokenizer):
         y_arrs = []
         for p in polygons:
             if isinstance(p, Polygon):
-                x_arr, y_arr = [np.array(x)[:-1] for x in p.boundary.xy]
+                x_arr, y_arr = [np.array(x) for x in p.boundary.xy]
             else:
                 x_arr, y_arr = [np.array(x) for x in p.xy]
             x_arrs.append(x_arr)
@@ -209,17 +209,46 @@ class TransformerPolarTokenizer(Tokenizer):
         for x_arr, y_arr in zip(x_arrs, y_arrs):
             m = [1 if i < len(x_arr) else 0 for i in range(pad_size)]
             x_arr, y_arr = [pad_arr(x, pad_size) for x in (x_arr, y_arr)]
-            r_arr, theta_arr = self.polar_converter(x_arr, y_arr)
+            theta_arr, r_arr = self.polar_converter(x_arr, y_arr)
             masks.append(m)
-            if self.append_original:
-                token = np.stack([x_arr, y_arr, r_arr, theta_arr], axis=-1)
-            else:
-                token = np.stack([r_arr, theta_arr], axis=-1)
+            token = np.stack([theta_arr, r_arr], axis=-1)
             tokens.append(token)
         return {
             "polygon": torch.tensor(tokens, dtype=torch.float32),
             "mask": torch.tensor(masks, dtype=torch.bool),
         }
+
+
+class TransformerCartePolarTokenizer(Tokenizer):
+    """Tokenizer for Transformer model, with both Cartesian and Polar coordinates.
+
+    This Tokenizer transforms Cartesian coordinates into polar coordinates,
+    and aggregates them with original Catresian coordinate information.
+
+    Its polygon feature has 4 columns : x, y, theta, r.
+    x is the sequence of x coordinates of the vertices
+    y is the sequence of y coordinates of the vertices
+    theta is the sequence of angles of the vertices from a reference direction (1, 0).
+    r is the sequence of distances of the vertices from a reference point (0, 0).
+
+    Args:
+        max_seq_len (int): Maximum sequence length. An exception will be raised if you
+            try to tokenize a polygon with more points than this.
+    """
+
+    def __init__(self, max_seq_len, *args, **kwargs):  # pylint: disable=unused-argument
+        super().__init__()
+        self.carte_tokenizer = TransformerTokenizer(max_seq_len)
+        self.polar_tokenizer = TransformerPolarTokenizer(max_seq_len)
+
+    def tokenize(self, polygons):
+        carte_dict = self.carte_tokenizer.tokenize(polygons)
+        polar_dict = self.polar_tokenizer.tokenize(polygons)
+        carte_polar_dict = {
+            "polygon": torch.cat([carte_dict["polygon"], polar_dict["polygon"]], -1),
+            "mask": carte_dict["mask"]
+        }
+        return carte_polar_dict
 
 
 class GraphPolarTokenizer(Tokenizer):
@@ -228,13 +257,13 @@ class GraphPolarTokenizer(Tokenizer):
     This Tokenizer transforms Cartesian coordinates into polar coordinates,
     and generate tokens that is readable for Graph-based model.
 
-    Args:
-        append_original (bool): Whether if use original features, or just use generated features.
+    Its x feature has 2 columns : theta, r.
+    theta is the sequence of angles of the vertices from a reference direction (1, 0).
+    r is the sequence of distances of the vertices from a reference point (0, 0).
     """
 
-    def __init__(self, append_original, *args, **kwargs):  # pylint: disable=unused-argument
+    def __init__(self, *args, **kwargs):  # pylint: disable=unused-argument
         super().__init__()
-        self.append_original = append_original
         self.polar_converter = PolarConverter()
 
     def tokenize(self, polygons):
@@ -245,11 +274,7 @@ class GraphPolarTokenizer(Tokenizer):
             else:
                 x_arr, y_arr = [np.array(x) for x in p.xy]
             r_arr, theta_arr = self.polar_converter(x_arr, y_arr)
-            if self.append_original:
-                c = np.stack([x_arr, y_arr, r_arr, theta_arr], axis=-1)
-            else:
-                c = np.stack([r_arr, theta_arr], axis=-1)
-
+            c = np.stack([r_arr, theta_arr], axis=-1)
             if isinstance(p, Polygon):
                 e = torch.cat([(torch.eye(2, dtype=torch.long) + i) % len(c) for i in range(len(c))], dim=-1)
             else:
@@ -268,10 +293,41 @@ class GraphPolarTokenizer(Tokenizer):
         }
 
 
+class GraphCartePolarTokenizer(Tokenizer):
+    """Tokenizer for Transformer model, with both Cartesian and Polar coordinates.
+
+    This Tokenizer transforms Cartesian coordinates into polar coordinates,
+    and aggregates them with original Catresian coordinate information.
+
+    Its x feature has 4 columns : x, y, theta, r.
+    x is the sequence of x coordinates of the vertices
+    y is the sequence of y coordinates of the vertices
+    theta is the sequence of angles of the vertices from a reference direction (1, 0).
+    r is the sequence of distances of the vertices from a reference point (0, 0).
+    """
+
+    def __init__(self, *args, **kwargs):  # pylint: disable=unused-argument
+        super().__init__()
+        self.carte_tokenizer = GraphTokenizer()
+        self.polar_tokenizer = GraphPolarTokenizer()
+
+    def tokenize(self, polygons):
+        carte_dict = self.carte_tokenizer.tokenize(polygons)
+        polar_dict = self.polar_tokenizer.tokenize(polygons)
+        carte_polar_dict = {
+            "x": torch.cat([carte_dict["x"], polar_dict["x"]], -1),
+            "edge_index": carte_dict["edge_index"],
+            "batch_index": carte_dict["batch"],
+        }
+        return carte_polar_dict
+
+
 TOKENIZERS = {
     "transformer": TransformerTokenizer,
-    "graph": GraphTokenizer,
     "transformer_augment": TransformerAugmentTokenizer,
     "transformer_polar": TransformerPolarTokenizer,
-    "graph_polar": GraphPolarTokenizer
+    "transformer_carte_polar": TransformerCartePolarTokenizer,
+    "graph": GraphTokenizer,
+    "graph_polar": GraphPolarTokenizer,
+    "graph_carte_polar": GraphCartePolarTokenizer
 }

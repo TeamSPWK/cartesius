@@ -1,5 +1,7 @@
 import numpy as np
 
+from cartesius.const import CONST
+
 
 class Converter:
     """Base class for converters. A Converter is a callable that take a sequence array of x, and y
@@ -41,9 +43,9 @@ class PolarConverter(Converter):
                 (np.ndarray): Sequence array of the angle from a reference direction (1, 0).
         """
         arr = np.stack([x_arr, y_arr], axis=-1)
-        r_arr = np.linalg.norm(arr, axis=-1)
         theta_arr = np.arctan2(y_arr, x_arr)
-        return r_arr, theta_arr
+        r_arr = np.linalg.norm(arr, axis=-1)
+        return theta_arr, r_arr
 
 
 class AugmentConverter(Converter):
@@ -73,9 +75,11 @@ class AugmentConverter(Converter):
         """
         arr = np.stack([x_arr, y_arr], axis=-1)
         edge_vectors = arr[1:] - arr[:-1]
-        next_norms = np.expand_dims(np.linalg.norm(edge_vectors[1:], axis=-1), axis=-1) + 1e-9
+        next_norms = np.expand_dims(np.linalg.norm(edge_vectors[1:], axis=-1), axis=-1)
+        next_norms += (next_norms == 0) * CONST.epsilon
         next_vectors = edge_vectors[1:] / next_norms
-        prev_norms = np.expand_dims(np.linalg.norm(edge_vectors[:-1], axis=-1), axis=-1) + 1e-9
+        prev_norms = np.expand_dims(np.linalg.norm(edge_vectors[:-1], axis=-1), axis=-1)
+        prev_norms += (prev_norms == 0) * CONST.epsilon
         prev_vectors = -edge_vectors[:-1] / prev_norms
         cosine = np.dot(next_vectors, prev_vectors.T).diagonal()
         cosine = np.concatenate([np.array([0]), cosine, np.array([0])])
@@ -105,7 +109,7 @@ class AugmentConverter(Converter):
         arr = np.stack([x_arr, y_arr], axis=-1)
         edge_vectors = arr[1:] - arr[:-1]
         edge_lengths = np.linalg.norm(edge_vectors, axis=-1)
-        req_vertices_per_edges = req_vertices * (edge_lengths / np.sum(edge_lengths) + 1e-4)
+        req_vertices_per_edges = req_vertices * edge_lengths / np.sum(edge_lengths)
         req_vertices_per_edges_decimal = req_vertices_per_edges - np.floor(req_vertices_per_edges)
         rounded_req_vertices_per_edges = np.floor(req_vertices_per_edges).astype(np.int)
         deficient_req_vertices = req_vertices - np.sum(rounded_req_vertices_per_edges)
@@ -113,7 +117,7 @@ class AugmentConverter(Converter):
         for i in range(deficient_req_vertices):
             rounded_req_vertices_per_edges[priority_indices[i % len(priority_indices)]] += 1
         rounded_req_edges_per_edges = rounded_req_vertices_per_edges + 1
-        interpolate_vectors = edge_vectors / np.expand_dims((rounded_req_edges_per_edges), axis=-1) + 1e-4
+        interpolate_vectors = edge_vectors / np.expand_dims((rounded_req_edges_per_edges), axis=-1)
         vertices_list = []
         for idx, (interpolate_vector,
                   rounded_req_edges_per_edge) in enumerate(zip(interpolate_vectors, rounded_req_edges_per_edges)):
@@ -136,23 +140,17 @@ class AugmentConverter(Converter):
                 np.ndarray: Augmented sequence array of the y coordinates.
         """
         arr = np.stack([x_arr, y_arr], axis=-1)
-        if (arr == 0).all() or len(arr) < 2:
+        if (arr == 0).all() or len(arr) == 0:
             return np.zeros(self.max_seq_len), np.zeros(self.max_seq_len)
+        if len(arr) < 2:
+            return np.repeat(arr[:, 0], self.max_seq_len), np.repeat(arr[:, -1], self.max_seq_len)
         req_vertices = self.max_seq_len - len(arr)
-        if np.linalg.norm(arr[-1] - arr[0]) == 0:
-            repeated_last_vertex = True
-        else:
-            repeated_last_vertex = False
-            x_arr, y_arr = np.concatenate([x_arr, [x_arr[0]]]), np.concatenate([y_arr, [y_arr[0]]])
         if req_vertices > 0:
             new_x_arr, new_y_arr = self.augment_vertices(x_arr, y_arr, req_vertices)
         elif req_vertices < 0:
             new_x_arr, new_y_arr = self.remove_vertices(x_arr, y_arr, req_vertices)
         else:
             new_x_arr, new_y_arr = arr[:, 0], arr[:, 1]
-        if not repeated_last_vertex:
-            new_x_arr = new_x_arr[:-1]
-            new_y_arr = new_y_arr[:-1]
         return new_x_arr, new_y_arr
 
 

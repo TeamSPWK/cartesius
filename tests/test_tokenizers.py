@@ -11,13 +11,13 @@ from cartesius.tokenizers import TransformerPolarTokenizer
 from cartesius.tokenizers import TransformerTokenizer
 
 
-def toleq(tgt, ref, tol=0.1):
+def toleq(tgt, ref, tol=1e-4):
     return ref * (1 - tol) < tgt < ref * (1 + tol)
 
 
 def polar_area(polar_coords):
     polar_arr = np.array(polar_coords)
-    r_arr, theta_arr = np.swapaxes(np.concatenate([polar_arr, [polar_arr[0]]]), 0, 1)
+    theta_arr, r_arr = np.swapaxes(polar_arr, 0, 1)
     theta_diff_arr = theta_arr[1:] - theta_arr[:-1]
     sin_arr = np.sin(theta_diff_arr)
     area = 0
@@ -183,7 +183,7 @@ def test_transformer_polar_tokenizer_single_polygon():
 
     result = tokenizer(p)
 
-    assert result["mask"][0].tolist() == [True for _ in range(3)]
+    assert result["mask"][0].tolist() == [True for _ in range(4)]
     assert toleq(polar_area(result["polygon"][0]), p.area)
 
 
@@ -205,9 +205,9 @@ def test_transformer_polar_tokenizer_batched_polygons():
 
     result = tokenizer(p)
 
-    assert result["mask"][0].tolist() == [True for _ in range(3)] + [False]
+    assert result["mask"][0].tolist() == [True for _ in range(4)] + [False]
     assert toleq(polar_area(result["polygon"][0]), p[0].area)
-    assert result["mask"][1].tolist() == [True for _ in range(4)]
+    assert result["mask"][1].tolist() == [True for _ in range(5)]
     assert toleq(polar_area(result["polygon"][1]), p[1].area)
 
 

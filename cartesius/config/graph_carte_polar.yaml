@@ -6,5 +6,4 @@ description: "Configuration to train a graph-based model with cartesian & polar 
 d_feature: 4
 
 # Data handling
-tokenizer: "graph_polar"
-append_original: True
+tokenizer: "graph_carte_polar"

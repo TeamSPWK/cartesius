@@ -8,6 +8,9 @@ class Transform:
     as input and transform it appropriately.
     """
 
+    def __init__(self, *args, **kwargs):
+        pass
+
     def __call__(self, polygon):
         """Main method of the Transform, it takes as input the polygon to
         transform, and return the transformed polygon.
@@ -60,7 +63,7 @@ class NormalizeScaleStaticTransform(Transform):
     dataset (does not change from one polygon to another).
     """
 
-    def __init__(self, max_radius_range):
+    def __init__(self, max_radius_range, *args, **kwargs):
         super().__init__()
         self.max_radius_range = max_radius_range
 

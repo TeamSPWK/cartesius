@@ -132,7 +132,10 @@ class GuessOmbrRatio(Task):
     """
 
     def get_label(self, polygon):
-        return polygon.area / polygon.minimum_rotated_rectangle.area
+        if polygon.minimum_rotated_rectangle.area < EPS:
+            return 1
+        else:
+            return polygon.area / polygon.minimum_rotated_rectangle.area
 
 
 class GuessAspectRatio(Task):
@@ -152,7 +155,10 @@ class GuessOpeningRatio(Task):
     """
 
     def get_label(self, polygon):
-        return polygon.buffer(-0.1).buffer(0.1).area / polygon.area
+        if polygon.area < EPS:
+            return 0
+        else:
+            return polygon.buffer(-0.1).buffer(0.1).area / polygon.area
 
 
 class GuessLongestThreeEdges(Task):

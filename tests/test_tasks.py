@@ -1,16 +1,11 @@
 import pytest
 from shapely import wkt
 
-from cartesius.tasks import GuessConvexity
+from cartesius.tasks import GuessConvexity, GuessOmbrRatio, GuessOpeningRatio
 
 
-@pytest.fixture
-def conf():
-    return {"d_model": 16, "task_dropout": 0}
-
-
-def test_convexity_task_is_close(conf):
-    task = GuessConvexity(conf)
+def test_convexity_task_is_close():
+    task = GuessConvexity()
 
     p = wkt.loads(
         "LINESTRING (132.2927559099003 177.2708149869082, 127.0437341469892 171.548151702939, 121.7947123840782 "
@@ -20,3 +15,23 @@ def test_convexity_task_is_close(conf):
 
     label = task.get_label(p)
     assert label == 1
+
+
+def test_ombr_task_is_div_by_zero():
+    task = GuessOmbrRatio()
+
+    p = wkt.loads("LINESTRING (0 0, 1 1)")
+    assert p.minimum_rotated_rectangle.area == 0
+
+    label = task.get_label(p)
+    assert label == 1
+
+
+def test_opening_task_is_div_by_zero():
+    task = GuessOpeningRatio()
+
+    p = wkt.loads("LINESTRING (0 0, 1 1)")
+    assert p.area == 0
+
+    label = task.get_label(p)
+    assert label == 0

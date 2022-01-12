@@ -131,7 +131,10 @@ class GuessOmbrRatio(Task):
     """
 
     def get_label(self, polygon):
-        return polygon.area / polygon.minimum_rotated_rectangle.area
+        ombr = polygon.minimum_rotated_rectangle
+        if ombr.area == 0:
+            return 1
+        return polygon.area / ombr.area
 
 
 class GuessAspectRatio(Task):
@@ -139,7 +142,12 @@ class GuessAspectRatio(Task):
     """
 
     def get_label(self, polygon):
-        ombr_coords = np.array(polygon.minimum_rotated_rectangle.exterior.coords)
+        ombr = polygon.minimum_rotated_rectangle
+        if ombr.area == 0:
+            if ombr.length == 0:
+                return 1
+            return 0
+        ombr_coords = np.array(ombr.exterior.coords)
         segvecs = ombr_coords[2] - ombr_coords[1], ombr_coords[1] - ombr_coords[0]
         x, y = [np.linalg.norm(vec) for vec in segvecs]
         return x / y if x < y else y / x
@@ -151,11 +159,14 @@ class GuessOpeningRatio(Task):
     """
 
     def get_label(self, polygon):
+        if polygon.area == 0:
+            return 0
         return polygon.buffer(-0.1).buffer(0.1).area / polygon.area
 
 
 class GuessLongestThreeEdges(Task):
     """Task sorting the edges of the polygon by its lengths.
+    Input have to be polygon.
     #TODO: This task needs entity head and categorical loss (To be implemented)
     """
 

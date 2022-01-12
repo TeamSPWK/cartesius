@@ -143,6 +143,9 @@ class GuessAspectRatio(Task):
     """
 
     def get_label(self, polygon):
+        if polygon.minimum_rotated_rectangle.area < EPS:
+            return 1
+
         ombr_coords = np.array(polygon.minimum_rotated_rectangle.exterior.coords)
         segvecs = ombr_coords[2] - ombr_coords[1], ombr_coords[1] - ombr_coords[0]
         x, y = [np.linalg.norm(vec) for vec in segvecs]

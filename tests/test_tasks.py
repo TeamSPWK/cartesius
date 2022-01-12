@@ -1,7 +1,7 @@
 import pytest
 from shapely import wkt
 
-from cartesius.tasks import GuessConvexity, GuessOmbrRatio, GuessOpeningRatio
+from cartesius.tasks import GuessConvexity, GuessOmbrRatio, GuessOpeningRatio, GuessAspectRatio
 
 
 def test_convexity_task_is_close():
@@ -17,7 +17,7 @@ def test_convexity_task_is_close():
     assert label == 1
 
 
-def test_ombr_task_is_div_by_zero():
+def test_ombr_task_div_by_zero():
     task = GuessOmbrRatio()
 
     p = wkt.loads("LINESTRING (0 0, 1 1)")
@@ -27,7 +27,7 @@ def test_ombr_task_is_div_by_zero():
     assert label == 1
 
 
-def test_opening_task_is_div_by_zero():
+def test_opening_task_div_by_zero():
     task = GuessOpeningRatio()
 
     p = wkt.loads("LINESTRING (0 0, 1 1)")
@@ -35,3 +35,13 @@ def test_opening_task_is_div_by_zero():
 
     label = task.get_label(p)
     assert label == 0
+
+
+def test_aspect_task_div_by_zero():
+    task = GuessAspectRatio()
+
+    p = wkt.loads("LINESTRING (0 0, 1 1)")
+    assert p.area == 0
+
+    label = task.get_label(p)
+    assert label == 1

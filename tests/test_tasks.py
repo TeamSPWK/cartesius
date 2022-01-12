@@ -1,7 +1,12 @@
 import pytest
 from shapely import wkt
+from shapely.geometry import LineString
+from shapely.geometry import Point
 
+from cartesius.tasks import GuessAspectRatio
 from cartesius.tasks import GuessConvexity
+from cartesius.tasks import GuessOmbrRatio
+from cartesius.tasks import GuessOpeningRatio
 
 
 @pytest.fixture
@@ -20,3 +25,51 @@ def test_convexity_task_is_close(conf):
 
     label = task.get_label(p)
     assert label == 1
+
+
+def test_guess_ombr_ratio(conf):
+    task = GuessOmbrRatio(conf)
+
+    p = Point((0, 0))
+    label = task.get_label(p)
+    assert label == 1
+
+    p = LineString([(0, 0), (1, 1)])
+    label = task.get_label(p)
+    assert label == 1
+
+    p = LineString([(0, 0), (1, 0), (1, 1)])
+    label = task.get_label(p)
+    assert label == 0
+
+
+def test_guess_aspect_ratio(conf):
+    task = GuessAspectRatio(conf)
+
+    p = Point((0, 0))
+    label = task.get_label(p)
+    assert label == 1
+
+    p = LineString([(0, 0), (1, 1)])
+    label = task.get_label(p)
+    assert label == 0
+
+    p = LineString([(0, 0), (1, 0), (1, 1)])
+    label = task.get_label(p)
+    assert label > 0
+
+
+def test_guess_opening_ratio(conf):
+    task = GuessOpeningRatio(conf)
+
+    p = Point((0, 0))
+    label = task.get_label(p)
+    assert label == 0
+
+    p = LineString([(0, 0), (1, 1)])
+    label = task.get_label(p)
+    assert label == 0
+
+    p = LineString([(0, 0), (1, 0), (1, 1)])
+    label = task.get_label(p)
+    assert label == 0

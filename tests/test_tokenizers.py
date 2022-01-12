@@ -3,12 +3,11 @@ from shapely.geometry import LineString
 from shapely.geometry import Point
 from shapely.geometry import Polygon
 
-from cartesius.tokenizers import GraphTokenizer
-from cartesius.tokenizers import TransformerTokenizer
+from cartesius.tokenizers import Tokenizer
 
 
 def test_tokenizer_single_polygon():
-    tokenizer = TransformerTokenizer(max_seq_len=256)
+    tokenizer = Tokenizer(max_seq_len=256)
     p = Polygon([(0, 0), (0, 1), (1, 0), (0, 0)])
 
     result = tokenizer(p)
@@ -19,7 +18,7 @@ def test_tokenizer_single_polygon():
 
 @pytest.mark.parametrize("p", [LineString([(0, 0), (1, 1)]), Point((0, 0))])
 def test_tokenizer_single_not_polygon(p):
-    tokenizer = TransformerTokenizer(max_seq_len=256)
+    tokenizer = Tokenizer(max_seq_len=256)
 
     result = tokenizer(p)
 
@@ -28,7 +27,7 @@ def test_tokenizer_single_not_polygon(p):
 
 
 def test_tokenizer_batched_polygons():
-    tokenizer = TransformerTokenizer(max_seq_len=256)
+    tokenizer = Tokenizer(max_seq_len=256)
     p = [
         Polygon([(0, 0), (0, 1), (1, 0), (0, 0)]),
         Polygon([(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)]),
@@ -43,7 +42,7 @@ def test_tokenizer_batched_polygons():
 
 
 def test_tokenizer_too_much_points():
-    tokenizer = TransformerTokenizer(max_seq_len=256)
+    tokenizer = Tokenizer(max_seq_len=256)
     p = Point((0, 0)).buffer(1, resolution=64)
 
     with pytest.raises(RuntimeError):

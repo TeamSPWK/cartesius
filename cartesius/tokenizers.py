@@ -1,7 +1,6 @@
 from shapely.geometry import Polygon
 import torch
 
-
 PAD_COORD = (0, 0)
 
 

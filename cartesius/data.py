@@ -238,14 +238,14 @@ class PolygonDataModule(pl.LightningDataModule):
         self.n_workers = conf["n_workers"]
 
     def setup(self, stage=None):  # pylint: disable=unused-argument
-        self.poly_dataset = PolygonDatasetV2(x_range=self.x_range,
-                                             y_range=self.y_range,
-                                             avg_radius_range=self.avg_radius_range,
-                                             n_range=self.n_range,
-                                             tasks=self.tasks,
-                                             transforms=self.transforms,
-                                             batch_size=self.batch_size,
-                                             n_batch_per_epoch=self.n_batch_per_epoch)
+        self.poly_dataset = PolygonDataset(x_range=self.x_range,
+                                           y_range=self.y_range,
+                                           avg_radius_range=self.avg_radius_range,
+                                           n_range=self.n_range,
+                                           tasks=self.tasks,
+                                           transforms=self.transforms,
+                                           batch_size=self.batch_size,
+                                           n_batch_per_epoch=self.n_batch_per_epoch)
         self.val_dataset = PolygonTestset(datafile=self.val_set_file, tasks=self.tasks, transforms=self.transforms)
         self.test_dataset = PolygonTestset(datafile=self.test_set_file, tasks=self.tasks, transforms=self.transforms)
 

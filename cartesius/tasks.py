@@ -14,12 +14,13 @@ class Task:
     You may optionally re-define `get_head()` and `get_loss_fn()`.
 
     Args:
-        conf ([type]): [description]
+        d_model (int): Input dimension for the score head of the task.
+        task_dropout (float, optional): Dropout rate for the score head of the task. Defaults to 0.
     """
 
-    def __init__(self, conf):
-        self.d_in = conf["d_model"]
-        self.dropout = conf["task_dropout"]
+    def __init__(self, d_model, task_dropout=0):
+        self.d_in = d_model
+        self.dropout = task_dropout
 
     def get_label(self, polygon):
         """Method used to retrieve the labels for this task, given the polygon used

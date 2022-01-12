@@ -1,6 +1,0 @@
-# Metadata
-parent_config: "transformer.yaml"
-description: "Transformer configuration with static scale, but use mean pooling instead of taking the first token as representation of the polygon."
-
-# Model
-pooling: "mean"

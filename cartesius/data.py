@@ -213,29 +213,54 @@ class PolygonDataModule(pl.LightningDataModule):
     """DataModule for the Polygon Dataset.
 
     Args:
-        conf (omegaconf.OmegaConf): Configuration.
-        tasks (list): List of Tasks to train on.
-        tokenizer (cartesius.tokenizers.Tokenizer): Tokenizer to use.
+        tasks (list): List of Tasks.
+        tokenizer (cartesius.tokenizers.Tokenizer): Tokenizer, for turning polygons into Tensors.
+        x_range (list, optional): Range for x-axis polygon generation. Defaults to [-100, 100].
+        y_range (list, optional): Range for y-axis polygon generation. Defaults to [-100, 100].
+        avg_radius_range (list, optional): List of possible average radius for polygon generation.
+            Defaults to [0.25, 1, 2, 3, 4, 5, 6, 32].
+        n_range (list, optional): List of possible number of vertices for polygon generation.
+            Defaults to [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 50].
+        val_set_file (str, optional): Validation set file path. Defaults to "valset.json".
+        test_set_file (str, optional): Test set file path. Defaults to "testset.json".
+        transforms (list, optional): Names of Transforms to apply to data.
+            Defaults to ["norm_pos", "norm_static_scale"].
+        batch_size (int, optional): Batch size to use. Defaults to 64.
+        n_batch_per_epoch (int, optional): Number of batch per epoch (deciding the size of 1 epoch). Defaults to 1000.
+        n_workers (int, optional): Number of workers for the dataloader. Defaults to 8.
     """
 
-    def __init__(self, conf, tasks, tokenizer):
+    def __init__(  # pylint: disable=dangerous-default-value
+            self,
+            tasks,
+            tokenizer,
+            x_range=[-100, 100],
+            y_range=[-100, 100],
+            avg_radius_range=[0.25, 1, 2, 3, 4, 5, 6, 32],
+            n_range=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 50],
+            val_set_file="valset.json",
+            test_set_file="testset.json",
+            transforms=["norm_pos", "norm_static_scale"],
+            batch_size=64,
+            n_batch_per_epoch=1000,
+            n_workers=8):
         super().__init__()
 
-        self.x_range = conf["x_range"]
-        self.y_range = conf["y_range"]
-        self.avg_radius_range = conf["avg_radius_range"]
-        self.n_range = conf["n_range"]
+        self.x_range = x_range
+        self.y_range = y_range
+        self.avg_radius_range = avg_radius_range
+        self.n_range = n_range
         self.tasks = tasks
-        self.transforms = [TRANSFORMS[tr](conf) for tr in conf["transforms"]]
-        self.val_set_file = conf["val_set_file"]
-        self.test_set_file = conf["test_set_file"]
+        self.transforms = [TRANSFORMS[tr](max_radius_range=max(self.avg_radius_range)) for tr in transforms]
+        self.val_set_file = val_set_file
+        self.test_set_file = test_set_file
 
         self.tokenizer = tokenizer
         self.collate_fn = partial(collate, tokenizer=self.tokenizer)
 
-        self.batch_size = conf["batch_size"]
-        self.n_batch_per_epoch = conf["n_batch_per_epoch"]
-        self.n_workers = conf["n_workers"]
+        self.batch_size = batch_size
+        self.n_batch_per_epoch = n_batch_per_epoch
+        self.n_workers = n_workers
 
     def setup(self, stage=None):  # pylint: disable=unused-argument
         self.poly_dataset = PolygonDataset(x_range=self.x_range,

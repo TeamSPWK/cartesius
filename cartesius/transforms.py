@@ -6,13 +6,7 @@ from shapely.geometry import Point
 class Transform:
     """Base class for transforms. A Transform is a callable that take a polygon
     as input and transform it appropriately.
-
-    Args:
-        config (omegaconf.OmegaConf): Configuration.
     """
-
-    def __init__(self, config):
-        self.config = config
 
     def __call__(self, polygon):
         """Main method of the Transform, it takes as input the polygon to
@@ -66,8 +60,12 @@ class NormalizeScaleStaticTransform(Transform):
     dataset (does not change from one polygon to another).
     """
 
+    def __init__(self, max_radius_range):
+        super().__init__()
+        self.max_radius_range = max_radius_range
+
     def __call__(self, polygon):
-        scale_size = max(self.config["avg_radius_range"]) * 4
+        scale_size = self.max_radius_range * 4
 
         min_x, min_y, *_ = polygon.bounds
         ref = Point(min_x, min_y)

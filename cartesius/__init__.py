@@ -8,7 +8,8 @@ import torch
 from torch import nn
 
 from cartesius.data import PolygonDataModule
-from cartesius.tasks import TASKS, DEFAULT_TASK_W
+from cartesius.tasks import DEFAULT_TASK_W
+from cartesius.tasks import TASKS
 from cartesius.utils import kaggle_convert_labels
 
 
@@ -32,7 +33,14 @@ class PolygonEncoder(pl.LightningModule):
             conf. Defaults to None.
     """
 
-    def __init__(self, tasks, encoder, tasks_scales=DEFAULT_TASK_W.values(), lr=3e-4, kaggle_submission_file="submission.csv", scheduler=None, sched_conf=None):
+    def __init__(self,
+                 tasks,
+                 encoder,
+                 tasks_scales=DEFAULT_TASK_W.values(),
+                 lr=3e-4,
+                 kaggle_submission_file="submission.csv",
+                 scheduler=None,
+                 sched_conf=None):
         super().__init__()
 
         self.tasks = tasks

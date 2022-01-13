@@ -1,7 +1,9 @@
-import pytest
 from shapely import wkt
 
-from cartesius.tasks import GuessConvexity, GuessOmbrRatio, GuessOpeningRatio, GuessAspectRatio
+from cartesius.tasks import GuessAspectRatio
+from cartesius.tasks import GuessConvexity
+from cartesius.tasks import GuessOmbrRatio
+from cartesius.tasks import GuessOpeningRatio
 
 
 def test_convexity_task_is_close():

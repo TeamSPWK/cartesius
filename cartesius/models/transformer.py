@@ -35,7 +35,7 @@ class Transformer(nn.Module):
         self.encoder = nn.TransformerEncoder(encoder_layers, n_layers)
 
         # Pooling operation for polygon representation
-        assert pooling in ["first", "mean"]
+        assert pooling in ["first", "mean", "max"]
         self.pooling = pooling
 
     def forward(self, polygon, mask):
@@ -55,4 +55,6 @@ class Transformer(nn.Module):
             poly_feat = hidden[:, 0, :]
         elif self.pooling == "mean":
             poly_feat = torch.mean(hidden, dim=1)
+        elif self.pooling == "max":
+            poly_feat = torch.max(hidden, dim=1)[0]
         return poly_feat

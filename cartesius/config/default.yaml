@@ -13,6 +13,7 @@ save_dir: "results"
 ckpt: null
 val_set_file: "valset.json"
 test_set_file: "testset.json"
+kaggle_submission_file: "submission.csv"
 
 # Model
 model_name: "transformer"
@@ -27,7 +28,7 @@ pooling: "first"
 adjacent_only: True
 
 # Tasks
-tasks: ["area", "perimeter", "size", "concavity", "min_clear", "centroid"]
+tasks: ["area", "perimeter", "size", "concavity", "min_clear", "centroid", "ombr_ratio", "aspect_ratio", "opening_ratio"]
 tasks_scales: [100, 1, 50, 20, 20, 50]
 task_dropout: 0.1
 
@@ -37,6 +38,7 @@ n_batch_per_epoch: 1000
 max_time: "00:12:00:00"   # Maximum 12h of training
 n_workers: 8
 watch_model: True
+early_stoppping: True
 
 # Optimizer & LR Scheduler
 lr: 3e-4
@@ -54,5 +56,5 @@ n_range: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 50]
 avg_radius_range: [0.25, 1, 2, 3, 4, 5, 6, 32]
 
 # Data handling
-transforms: ["norm_pos", "norm_scale"]
+transforms: ["norm_pos", "norm_static_scale"]
 tokenizer: "transformer"

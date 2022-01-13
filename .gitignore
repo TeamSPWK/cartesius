@@ -16,3 +16,5 @@ results/*
 *.ckpt
 *.zip
 /*.png
+*.csv
+/*.json

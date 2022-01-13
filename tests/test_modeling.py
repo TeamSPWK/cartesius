@@ -1,3 +1,4 @@
+import pytest
 import torch
 
 from cartesius.modeling import ScoreHead
@@ -18,7 +19,8 @@ def test_score_head():
     assert x.grad is not None
 
 
-def test_transformer_basic():
+@pytest.mark.parametrize("pooling", ["first", "mean", "max"])
+def test_transformer_basic(pooling):
     m = Transformer(d_model=32,
                     max_seq_len=64,
                     n_heads=8,
@@ -26,27 +28,7 @@ def test_transformer_basic():
                     dropout=0,
                     activation="gelu",
                     n_layers=2,
-                    pooling="first")
-    x = torch.rand((8, 36, 2), requires_grad=True)
-    mask = torch.rand((8, 36)) < 0.5
-    labels = torch.rand((8,))
-
-    y = m(x, mask)
-
-    (y.sum(-1) - labels).sum().backward()  # Backward pass, to check gradient flow
-    assert y.size() == (8, 32)
-    assert x.grad is not None
-
-
-def test_transformer_avg():
-    m = Transformer(d_model=32,
-                    max_seq_len=64,
-                    n_heads=8,
-                    d_ff=64,
-                    dropout=0,
-                    activation="gelu",
-                    n_layers=2,
-                    pooling="mean")
+                    pooling=pooling)
     x = torch.rand((8, 36, 2), requires_grad=True)
     mask = torch.rand((8, 36)) < 0.5
     labels = torch.rand((8,))

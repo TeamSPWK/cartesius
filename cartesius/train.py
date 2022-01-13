@@ -1,3 +1,4 @@
+import csv
 import random
 
 import pytorch_lightning as pl
@@ -9,7 +10,9 @@ from torch import nn
 from cartesius.data import PolygonDataModule
 from cartesius.models import create_model
 from cartesius.tasks import TASKS
+from cartesius.tokenizers import TOKENIZERS
 from cartesius.utils import create_tags
+from cartesius.utils import kaggle_convert_labels
 from cartesius.utils import load_conf
 
 
@@ -23,16 +26,17 @@ class PolygonEncoder(pl.LightningModule):
     Args:
         conf (omegaconf.OmegaConf): Configuration.
         tasks (list): List of Tasks to train on.
+        encoder (torch.nn.Module): Encoder to train and benchmark.
     """
 
-    def __init__(self, conf, tasks):
+    def __init__(self, conf, tasks, encoder):
         super().__init__()
 
         self.conf = conf
         self.tasks = tasks
         self.tasks_scales = conf["tasks_scales"]
 
-        self.encoder = create_model(conf.model_name, conf)
+        self.encoder = encoder
         self.tasks_heads = nn.ModuleList([t.get_head() for t in self.tasks])
 
         self.learning_rate = conf.lr
@@ -89,7 +93,26 @@ class PolygonEncoder(pl.LightningModule):
 
         loss = sum(losses)
         self.log("test_loss", loss)
-        return loss
+        return [p.tolist() for p in preds]
+
+    def test_epoch_end(self, outputs):
+        # Convert outputs into a list of sample, where each sample is a list of task values
+        preds = []
+        for output in outputs:
+            # Transpose : [tasks, batch] => [batch, tasks]
+            batch = list(map(list, zip(*output)))
+            preds.extend(batch)
+
+        kaggle_rows = [kaggle_convert_labels(self.conf.tasks, p) for p in preds]
+
+        with open(self.conf.kaggle_submission_file, "w", encoding="utf-8") as csv_f:
+            writer = csv.DictWriter(csv_f, fieldnames=list(kaggle_rows[0][0].keys()))
+            writer.writeheader()
+
+            for i, kaggle_row in enumerate(kaggle_rows):
+                for row in kaggle_row:
+                    row["id"] = f"{i}_" + row["id"]
+                    writer.writerow(row)
 
     def configure_optimizers(self):
         lr = self.lr or self.learning_rate
@@ -120,17 +143,24 @@ def main():
     # Resolve tasks
     tasks = [TASKS[t](conf) for t in conf.tasks]
 
-    model = PolygonEncoder(conf, tasks)
-    data = PolygonDataModule(conf, tasks)
+    # Create the right model + tokenizer
+    tokenizer = TOKENIZERS[conf["tokenizer"]](**conf)
+    encoder = create_model(conf.model_name, conf)
+
+    model = PolygonEncoder(conf, tasks, encoder)
+    data = PolygonDataModule(conf, tasks, tokenizer)
 
     wandb_logger = pl.loggers.WandbLogger(project=conf.project_name, config=conf, tags=create_tags(conf))
     if conf.watch_model:
         wandb_logger.watch(model, log="all")
     mc = ModelCheckpoint(monitor="val_loss", mode="min", filename="{step}-{val_loss:.4f}")
+    callbacks = [mc]
+    if conf.early_stoppping:
+        callbacks.append(EarlyStopping(monitor="val_loss", mode="min", verbose=True))
     trainer = pl.Trainer(
         gpus=1,
         logger=wandb_logger,
-        callbacks=[EarlyStopping(monitor="val_loss", mode="min", verbose=True), mc],
+        callbacks=callbacks,
         gradient_clip_val=conf.grad_clip,
         max_time=conf.max_time,
         auto_lr_find=conf.auto_lr_find,

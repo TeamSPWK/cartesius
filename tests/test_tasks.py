@@ -27,48 +27,72 @@ def test_convexity_task_is_close(conf):
     assert label == 1
 
 
-def test_guess_ombr_ratio(conf):
+def test_guess_ombr_ratio_point(conf):
     task = GuessOmbrRatio(conf)
 
     p = Point((0, 0))
     label = task.get_label(p)
     assert label == 1
 
+
+def test_guess_ombr_ratio_linestring_straight(conf):
+    task = GuessOmbrRatio(conf)
+
     p = LineString([(0, 0), (1, 1)])
     label = task.get_label(p)
     assert label == 1
+
+
+def test_guess_ombr_ratio_linestring_with_angle(conf):
+    task = GuessOmbrRatio(conf)
 
     p = LineString([(0, 0), (1, 0), (1, 1)])
     label = task.get_label(p)
     assert label == 0
 
 
-def test_guess_aspect_ratio(conf):
+def test_guess_aspect_ratio_point(conf):
     task = GuessAspectRatio(conf)
 
     p = Point((0, 0))
     label = task.get_label(p)
     assert label == 1
 
+
+def test_guess_aspect_ratio_linestring_straignt(conf):
+    task = GuessAspectRatio(conf)
+
     p = LineString([(0, 0), (1, 1)])
     label = task.get_label(p)
     assert label == 0
+
+
+def test_guess_aspect_ratio_linestring_with_angle(conf):
+    task = GuessAspectRatio(conf)
 
     p = LineString([(0, 0), (1, 0), (1, 1)])
     label = task.get_label(p)
     assert label > 0
 
 
-def test_guess_opening_ratio(conf):
+def test_guess_opening_ratio_point(conf):
     task = GuessOpeningRatio(conf)
 
     p = Point((0, 0))
     label = task.get_label(p)
     assert label == 0
 
+
+def test_guess_opening_ratio_linestring_straight(conf):
+    task = GuessOpeningRatio(conf)
+
     p = LineString([(0, 0), (1, 1)])
     label = task.get_label(p)
     assert label == 0
+
+
+def test_guess_opening_ratio_linestring_with_angle(conf):
+    task = GuessOpeningRatio(conf)
 
     p = LineString([(0, 0), (1, 0), (1, 1)])
     label = task.get_label(p)

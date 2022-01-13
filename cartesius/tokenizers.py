@@ -317,7 +317,7 @@ class GraphCartePolarTokenizer(Tokenizer):
         carte_polar_dict = {
             "x": torch.cat([carte_dict["x"], polar_dict["x"]], -1),
             "edge_index": carte_dict["edge_index"],
-            "batch_index": carte_dict["batch"],
+            "batch_index": carte_dict["batch_index"],
         }
         return carte_polar_dict
 

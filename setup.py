@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 reqs = [
     "torch==1.9.*", "pytorch-lightning==1.5.*", "shapely==1.8.*", "omegaconf==2.1.*", "matplotlib==3.2.*",
-    "wandb==0.12.*", "opencv-python==4.4.*"
+    "wandb==0.12.*"
 ]
 
 extras_require = {
@@ -14,7 +14,7 @@ extras_require = {
     "lint": ["isort==5.10.*", "yapf==0.31.*", "pylint==2.11.*"],
     "graph": ["torch-geometric==2.0.*"],
     "se3": ["se3-transformer-pytorch==0.8.*"],
-    # "cv2": ["opencv-python==4.4.*"]
+    "cv2": ["opencv-python==4.4.*"]
 }
 extras_require["all"] = sum(extras_require.values(), [])
 extras_require["dev"] = extras_require["docs"] + extras_require["tests"] + extras_require["lint"]

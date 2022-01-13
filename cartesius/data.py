@@ -33,7 +33,7 @@ class PolygonDataset(Dataset):
             for the average radius of the generated polygon.
         n_range (list): list of int, representing the possible choices for the number
             of points used to generate a polygon.
-        tasks (list, optional): list of Tasks. These tasks will be used to compute the
+        tasks (dict, optional): Dict of Tasks. These tasks will be used to compute the
             labels of each polygon. Defaults to None.
         transforms (list, optional): list of Transforms to apply to the polygons after
             they are generated and before the labels are computed. Defaults to None.
@@ -58,7 +58,7 @@ class PolygonDataset(Dataset):
         self.y_range = y_range
         self.avg_radius_range = avg_radius_range
         self.n_range = n_range
-        self.tasks = tasks if tasks is not None else []
+        self.tasks = list(tasks.values()) if tasks is not None else []
         self.transforms = transforms if transforms is not None else []
 
         self.batch_size = batch_size
@@ -157,7 +157,7 @@ class PolygonTestset(Dataset):
 
     Args:
         datafile (str): Path of the JSON file containing the Polygon data
-        tasks (list, optional): list of Tasks. These tasks will be used to compute the
+        tasks (dict, optional): Dict of Tasks. These tasks will be used to compute the
             labels of each polygon. Defaults to None.
         transforms (list, optional): list of Transforms to apply to the polygons after
             they are generated and before the labels are computed. Defaults to None.
@@ -166,7 +166,7 @@ class PolygonTestset(Dataset):
     def __init__(self, datafile, tasks=None, transforms=None):
         super().__init__()
 
-        self.tasks = tasks if tasks is not None else []
+        self.tasks = list(tasks.values()) if tasks is not None else []
         self.transforms = transforms if transforms is not None else []
 
         # Try to load the data from local directory first
@@ -205,7 +205,7 @@ def collate(samples, tokenizer):
     batch = tokenizer(polygons)
 
     # Add the labels
-    batch["labels"] = [torch.tensor([lbl[i] for lbl in labels]) for i in range(len(labels[0]))]
+    batch["labels"] = [torch.tensor([lbl[i] for lbl in labels], dtype=torch.float) for i in range(len(labels[0]))]
     return batch
 
 
@@ -213,7 +213,7 @@ class PolygonDataModule(pl.LightningDataModule):
     """DataModule for the Polygon Dataset.
 
     Args:
-        tasks (list): List of Tasks.
+        tasks (dict): Dict of Tasks.
         tokenizer (cartesius.tokenizers.Tokenizer): Tokenizer, for turning polygons into Tensors.
         x_range (list, optional): Range for x-axis polygon generation. Defaults to [-100, 100].
         y_range (list, optional): Range for y-axis polygon generation. Defaults to [-100, 100].

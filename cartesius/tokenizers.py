@@ -13,11 +13,11 @@ class Tokenizer:
     Sub classes should overwrite the method `tokenize()`.
 
     Args:
-        max_seq_len (int): Maximum sequence length. An exception will be raised if you
-            try to tokenize a polygon with more points than this.
+        max_seq_len (int, optional): Maximum sequence length. An exception will be raised if you
+            try to tokenize a polygon with more points than this. Defaults to 256.
     """
 
-    def __init__(self, max_seq_len, *args, **kwargs):  # pylint: disable=unused-argument
+    def __init__(self, *args, max_seq_len=256, **kwargs):  # pylint: disable=unused-argument
         self.max_seq_len = max_seq_len
 
     def __call__(self, polygons):

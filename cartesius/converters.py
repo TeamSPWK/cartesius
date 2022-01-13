@@ -1,6 +1,6 @@
 import numpy as np
 
-from cartesius.const import CONST
+EPSILON = 1e-9
 
 
 class Converter:
@@ -76,10 +76,10 @@ class AugmentConverter(Converter):
         arr = np.stack([x_arr, y_arr], axis=-1)
         edge_vectors = arr[1:] - arr[:-1]
         next_norms = np.expand_dims(np.linalg.norm(edge_vectors[1:], axis=-1), axis=-1)
-        next_norms += (next_norms == 0) * CONST.epsilon
+        next_norms += (next_norms == 0) * EPSILON
         next_vectors = edge_vectors[1:] / next_norms
         prev_norms = np.expand_dims(np.linalg.norm(edge_vectors[:-1], axis=-1), axis=-1)
-        prev_norms += (prev_norms == 0) * CONST.epsilon
+        prev_norms += (prev_norms == 0) * EPSILON
         prev_vectors = -edge_vectors[:-1] / prev_norms
         cosine = np.dot(next_vectors, prev_vectors.T).diagonal()
         cosine = np.concatenate([np.array([0]), cosine, np.array([0])])

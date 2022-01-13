@@ -6,7 +6,7 @@ class ResNet(nn.Module):
     """Model using ResNet (Pytorch official model with a dimension reducing tail)
 
     Args:
-        d_model (int): Dimension for the ResNet.
+        d_model (int): Out dimension for the ResNet.
     """
 
     def __init__(self, d_model):

@@ -1,4 +1,6 @@
 import numpy as np
+from shapely.geometry import box
+from shapely.geometry import LineString
 from shapely.geometry import Polygon
 import torch
 
@@ -154,9 +156,13 @@ class RasterTokenizer(Tokenizer):
                 poly_pts = np.array(p.boundary.coords)[:-1]
             else:
                 poly_pts = np.array(p.coords)
-            centralized_poly = ((poly_pts - np.array(p.centroid.coords)) / (poly_max_len / canvas_len) + canvas_center)
+            centralized_poly = ((poly_pts - np.array(box(*p.bounds).centroid.coords)) / (poly_max_len / canvas_len) +
+                                canvas_center)
             preprocessed_poly = centralized_poly.astype(np.int32).reshape(-1, 1, 2)
-            img = cv2.fillPoly(canvas, [preprocessed_poly.reshape(-1, 1, 2)], (255, 255, 255)) / 255
+            if isinstance(p, LineString):
+                img = cv2.polylines(canvas, [preprocessed_poly], False, (255, 255, 255)) / 255
+            else:
+                img = cv2.fillPoly(canvas, [preprocessed_poly], (255, 255, 255)) / 255
             batch.append(img)
         batch = np.rollaxis(np.stack(batch), -1, 1)
         x = torch.tensor(batch, dtype=torch.float32)

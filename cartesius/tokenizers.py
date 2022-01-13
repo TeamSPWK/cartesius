@@ -1,10 +1,10 @@
-import cv2
 import numpy as np
 from shapely.geometry import Polygon
 import torch
 
 try:
     # Optional, have to install additional dependencies for this to work
+    import cv2
     from torch_geometric.data import Batch
     from torch_geometric.data import Data
 except ImportError:

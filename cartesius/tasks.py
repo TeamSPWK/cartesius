@@ -1,6 +1,9 @@
+import numpy as np
 import torch.nn.functional as F
 
 from cartesius.modeling import ScoreHead
+
+EPS = 1e-9
 
 
 class Task:
@@ -81,18 +84,18 @@ class GuessSize(Task):
         return ScoreHead(self.d_in, self.dropout, 2)
 
 
-class GuessConcavity(Task):
-    """Task predicting the concavity of the polygon.
+class GuessConvexity(Task):
+    """Task predicting the convexity of the polygon.
 
-    Concavity represents how much concave a polygon is. It's computed as the area
+    Convexity represents how much convex a polygon is. It's computed as the area
     of the current polygon divided by the area of its convex hull.
     """
 
     def get_label(self, polygon):
         convex_p = polygon.convex_hull
 
-        if convex_p.area == 0:
-            return 0.
+        if convex_p.area < EPS:
+            return 1
         else:
             return max(polygon.area / convex_p.area, 0.)
 
@@ -123,11 +126,67 @@ class GuessCentroid(Task):
         return ScoreHead(self.d_in, self.dropout, 2)
 
 
+class GuessOmbrRatio(Task):
+    """Task predicting the OMBR(oriented minimum bounding rectangle) ratio of the polygon.
+    """
+
+    def get_label(self, polygon):
+        ombr = polygon.minimum_rotated_rectangle
+        if ombr.area == 0:
+            return 1
+        return polygon.area / ombr.area
+
+
+class GuessAspectRatio(Task):
+    """Task predicting the OMBR(oriented minimum bounding rectangle) aspect ratio of the polygon.
+    """
+
+    def get_label(self, polygon):
+        ombr = polygon.minimum_rotated_rectangle
+        if ombr.area == 0:
+            if ombr.length == 0:
+                return 1
+            return 0
+        ombr_coords = np.array(ombr.exterior.coords)
+        segvecs = ombr_coords[2] - ombr_coords[1], ombr_coords[1] - ombr_coords[0]
+        x, y = [np.linalg.norm(vec) for vec in segvecs]
+        return x / y if x < y else y / x
+
+
+class GuessOpeningRatio(Task):
+    """Task predicting the opening ratio of the polygon.
+    Used fixed length of opening, to match the purpose of discriminating deadspace.
+    """
+
+    def get_label(self, polygon):
+        if polygon.area == 0:
+            return 0
+        return polygon.buffer(-0.1).buffer(0.1).area / polygon.area
+
+
+class GuessLongestThreeEdges(Task):
+    """Task sorting the edges of the polygon by its lengths.
+    Input have to be polygon.
+    #TODO: This task needs entity head and categorical loss (To be implemented)
+    """
+
+    def get_label(self, polygon):
+        coords = np.array(polygon.exterior.coords)
+        seglens = [np.linalg.norm(coords[i + 1] - coords[i]) for i in range(len(coords) - 1)]
+        return np.argsort(seglens[::-1])[:3]
+
+    def get_head(self):
+        return ScoreHead(self.d_in, self.dropout, 3)
+
+
 TASKS = {
     "area": GuessArea,
     "perimeter": GuessPerimeter,
     "size": GuessSize,
-    "concavity": GuessConcavity,
+    "convexity": GuessConvexity,
     "min_clear": GuessMinimumClearance,
     "centroid": GuessCentroid,
+    "ombr_ratio": GuessOmbrRatio,
+    "aspect_ratio": GuessAspectRatio,
+    "opening_ratio": GuessOpeningRatio,
 }

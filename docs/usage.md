@@ -86,9 +86,12 @@ List of tasks currently implemented :
 * **`area`** : Predict the area of the polygon.
 * **`perimeter`** : Predict the perimeter of the polygon.
 * **`size`** : Predict the width and the height of the polygon.
-* **`concavity`** : Predict the "concavity" of the polygon. Concavity is defined as the area of the polygon divided by the area of its convex hull. It represents "how much concave a polygon is".
+* **`convexity`** : Predict the "convexity" of the polygon. Convexity is defined as the area of the polygon divided by the area of its convex hull. It represents "how much convex a polygon is".
 * **`min_clear`** : Predict the minimum clearance of the polygon. The minimum clearance is the smallest distance by which a node should be moved to produce an invalid geometry.
 * **`centroid`** : Predict the x and y coordinates of the centroid of the polygon.
+* **`ombr_ratio`** : Predict "oriented minimum bounding rectangle ratio" of the polygon. OMBR ratio is defined as the area of the polygon divided by the area of its oriented minimum bounding rectangle. It represents "how close the polygon is to a rectangle".
+* **`aspect_ratio`** : Predict "oriented minimum bounding rectangle aspect ratio" of the polygon. OMBR aspect ratio is defined as the length of shorter line divided by longer line of the OMBR. It represents wideness of the polygon.
+* **`opening_ratio`** : Predict "opening ratio" of the polygon. Opening ratio is defined as the area of the opening applied polygon divided by the area of the original polygon. It represents "how much polygon have useful space that is wide enough".
 
 ## Configuration
 

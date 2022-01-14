@@ -21,7 +21,8 @@ def test_score_head():
 
 @pytest.mark.parametrize("pooling", ["first", "mean", "max"])
 def test_transformer_basic(pooling):
-    m = Transformer(d_model=32,
+    m = Transformer(d_feature=2,
+                    d_model=32,
                     max_seq_len=64,
                     n_heads=8,
                     d_ff=64,
@@ -41,7 +42,7 @@ def test_transformer_basic(pooling):
 
 
 def test_geometric():
-    m = Geometric(d_model=32, d_ff=64, dropout=0, n_layers=2)
+    m = Geometric(d_feature=2, d_model=32, d_ff=64, dropout=0, n_layers=2)
     x = torch.rand((36, 2), requires_grad=True)
     e = torch.stack([torch.arange(36), (torch.arange(36) + 1) % 36])
     b = torch.tensor([0] * 20 + [1] * 10 + [2] * 5 + [3])

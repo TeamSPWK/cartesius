@@ -1,11 +1,13 @@
 <h1 align="center">cartesius</h1>
-<p align="center">Benchmark & Pretraining for Cartesian coordinates feature extraction</p>
+<p align="center">Benchmark for Cartesian coordinates feature extraction</p>
 
-<p align="center"><a href="https://github.com/TeamSPWK/parka/releases"><img src="https://img.shields.io/badge/release-v0.0-blue" alt="release state" /></a>
-<a href="https://github.com/TeamSPWK/cartesius/actions/workflows/pytest.yml"><img src="https://github.com/TeamSPWK/cartesius/actions/workflows/pytest.yml/badge.svg" alt="Test status" /></a>
-<a href="https://github.com/TeamSPWK/cartesius/actions/workflows/lint.yml"><img src="https://github.com/TeamSPWK/cartesius/actions/workflows/lint.yml/badge.svg" alt="Lint status" /></a>
-<a href="https://spwk-cartesius.readthedocs-hosted.com/en/latest/?badge=latest"><img src="https://readthedocs.com/projects/spwk-cartesius/badge/?version=latest&token=23bd7924365dc7d2aecf8f3af3bdd2bfd045d1a17674a28bf3d857c3a6afef97" alt="Documentation status" /></a>
-<a href="https://www.kaggle.com/c/cartesius/"><img src="https://img.shields.io/badge/kaggle-cartesius-blueviolet" alt="Kaggle" /></a>
+<p align="center">
+    <a href="https://github.com/TeamSPWK/cartesius/releases"><img src="https://img.shields.io/github/release/TeamSPWK/cartesius.svg" alt="GitHub release" /></a>
+    <a href="https://github.com/TeamSPWK/cartesius/actions/workflows/pytest.yml"><img src="https://github.com/TeamSPWK/cartesius/actions/workflows/pytest.yml/badge.svg" alt="Test status" /></a>
+    <a href="https://github.com/TeamSPWK/cartesius/actions/workflows/lint.yml"><img src="https://github.com/TeamSPWK/cartesius/actions/workflows/lint.yml/badge.svg" alt="Lint status" /></a>
+    <a href="https://spwk-cartesius.readthedocs-hosted.com/en/latest/?badge=latest"><img src="https://readthedocs.com/projects/spwk-cartesius/badge/?version=latest&token=23bd7924365dc7d2aecf8f3af3bdd2bfd045d1a17674a28bf3d857c3a6afef97" alt="Documentation status" /></a>
+    <a href="https://www.kaggle.com/c/cartesius/"><img src="https://img.shields.io/badge/kaggle-cartesius-blueviolet" alt="Kaggle" /></a>
+</p>
 
 <p align="center">
   <a href="#description">Description</a> •
@@ -18,7 +20,11 @@
 
 <h2 align="center">Description</h2>
 
-This repository contains the code for training & benchmarking neural networks on several tasks related to feature extraction on cartesian coordinates.
+This repository contains the data for training & benchmarking neural networks on various tasks, with the goal to evaluate **feature extraction** capabilities of benchmarked models.
+
+Extracting features 2D polygons is not a trivial task. Many models can be applied to this task, and many approaches exist (learning from raw coordinates, learning from a raster image, etc...).
+
+So it's necessary to have a benchmark, in order to quantify and see which model/approach is the best.
 
 
 <h2 align="center">Install</h2>
@@ -26,52 +32,58 @@ This repository contains the code for training & benchmarking neural networks on
 Install `cartesius` by running :
 
 ```bash
-export GH_PAT="<your_github_pat_here>"
-pip install git+https://$GH_PAT@github.com/TeamSPWK/cartesius.git
-```
-
----
-
-For development, you can install it locally by first cloning the repository :
-
-```bash
-export GH_PAT="<your_github_pat_here>"
-git clone https://$GH_PAT@github.com/TeamSPWK/cartesius.git
-cd cartesius
-pip install -e .
+pip install spwk-cartesius
 ```
 
 <h2 align="center">Usage</h2>
 
-Just run the command `cartesius`, it will train and test a model with the default configuration (located in `cartesius/config/default.yaml`).
+In `cartesius`, the training data is polygons that are randomly generated.
 
----
+Let's have a look. First, initialize the training set :
 
-You can change the configuration by specifying a different configuration file :
+```python
+from cartesius.data import PolygonDataset
 
-```bash
-cartesius config=transformer.yaml
+train_data = PolygonDataset(
+    x_range=[-50, 50],          # Range for the center of the polygon (x)
+    y_range=[-50, 50],          # Range for the center of the polygon (y)
+    avg_radius_range=[1, 10],   # Average radius of the generated polygons. Here it will either generate polygons with average radius 1, or 10
+    n_range=[6, 8, 11],         # Number of points in the polygon. here it will either generate polygons with 6, 8 or 11 points
+)
+```
+
+Then, we will take a look at the generated polygon :
+
+```python
+import matplotlib.pyplot as plt
+from cartesius.utils import print_polygon
+
+def disp(*polygons):
+    plt.clf()
+    for p in polygons:
+      print_polygon(p)
+    plt.gca().set_aspect(1)
+    plt.axis("off")
+    plt.show()
+
+polygon, labels = train_data[0]
+disp(polygon)
+print(labels)
 ```
 
 ---
 
-You can also change each value of the configuration independently, directly from the command line :
+The benchmark relies on various tasks : predicting the **area** of a polygon, its **perimeter**, its **centroid**, etc... (see the documentation for more details)
 
-```bash
-cartesius seed=666 activation=relu
-```
+The goal of the benchmark is to write an **encoder** : a model that can encode a polygon's features into a vector.
 
----
-
-You can test a specific checkpoint by running :
-
-```bash
-cartesius train=False test=True ckpt=<path/to/my/model.ckpt>
-```
+After the feature vector is extracted from the polygon using the encoder, several heads (one per task) will predict the labels. If the polygon is well represented through the extracted features, the task-heads should have no problem predicting the labels.
 
 ---
 
-_Note : After testing, a file `submission.csv` is saved, you can use it for the [Kaggle competition](https://www.kaggle.com/c/cartesius/)._
+The `notebooks/` folder contains a notebook that implements a Transformer model, trains it on `cartesius` data, and evaluate it. You can use this notebook as a model for further research.
+
+_Note : At the end of the notebook, a file `submission.csv` is saved, you can use it for the [Kaggle competition](https://www.kaggle.com/c/cartesius/)._
 
 <h2 align="center">Contribute</h2>
 

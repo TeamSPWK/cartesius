@@ -1,4 +1,7 @@
+import torch
+
 from .geometric import Geometric
+from .resnet import ResNet
 from .se3 import SE3
 from .transformer import Transformer
 
@@ -30,5 +33,7 @@ def create_model(model_name, conf):
             n_layers=conf["n_layers"],
             adjacent_only=conf["adjacent_only"],
         )
+    if model_name == "resnet":
+        return ResNet(d_model=conf["d_model"],)
     else:
         raise ValueError(f"Unknown model ({model_name}). Please provide an existing model.")

@@ -1,8 +1,12 @@
+import numpy as np
+from shapely.geometry import box
+from shapely.geometry import LineString
 from shapely.geometry import Polygon
 import torch
 
 try:
     # Optional, have to install additional dependencies for this to work
+    import cv2
     from torch_geometric.data import Batch
     from torch_geometric.data import Data
 except ImportError:
@@ -132,7 +136,37 @@ class GraphTokenizer(Tokenizer):
         }
 
 
-TOKENIZERS = {
-    "transformer": TransformerTokenizer,
-    "graph": GraphTokenizer,
-}
+class RasterTokenizer(Tokenizer):
+    """Tokenizer for Image-based model.
+
+    This tokenizer generates image with canvas size 128 * 128,
+    which colors inside of polygon with 1 and outside of polygon with 0.
+    Shape of returned tensor is (batch size, 3, canvas length, canvas length).
+    """
+
+    def tokenize(self, polygons):
+        canvas_len = 128
+        poly_max_len = 1
+        canvas_center = np.array((canvas_len, canvas_len)) / 2
+
+        batch = []
+        for p in polygons:
+            canvas = np.zeros((canvas_len, canvas_len, 3), dtype=np.uint8)
+            if isinstance(p, Polygon):
+                poly_pts = np.array(p.boundary.coords)[:-1]
+            else:
+                poly_pts = np.array(p.coords)
+            centralized_poly = ((poly_pts - np.array(box(*p.bounds).centroid.coords)) / (poly_max_len / canvas_len) +
+                                canvas_center)
+            preprocessed_poly = centralized_poly.astype(np.int32).reshape(-1, 1, 2)
+            if isinstance(p, LineString):
+                img = cv2.polylines(canvas, [preprocessed_poly], False, (255, 255, 255)) / 255
+            else:
+                img = cv2.fillPoly(canvas, [preprocessed_poly], (255, 255, 255)) / 255
+            batch.append(img)
+        batch = np.rollaxis(np.stack(batch), -1, 1)
+        x = torch.tensor(batch, dtype=torch.float32)
+        return {"x": x}
+
+
+TOKENIZERS = {"transformer": TransformerTokenizer, "graph": GraphTokenizer, "raster": RasterTokenizer}

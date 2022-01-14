@@ -1,6 +1,6 @@
 # Usage
 
-After installing the package, you can use the package to access the datasets and train your own model.
+After installing the package, you can use `cartesius` to access the datasets and train your own model.
 
 ## Data
 

@@ -66,12 +66,10 @@ class PolygonEncoder(pl.LightningModule):
         return preds
 
     def training_step(self, batch, batch_idx):  # pylint: disable=unused-argument
-        labels = batch.pop("labels")
-
-        preds = self.forward(batch)
+        preds = self.forward(batch["inputs"])
 
         losses = []
-        for (task_name, task), pred, label, s in zip(self.tasks.items(), preds, labels, self.tasks_scales):
+        for (task_name, task), pred, label, s in zip(self.tasks.items(), preds, batch["labels"], self.tasks_scales):
             loss = task.get_loss_fn()(pred, label)
             self.log(f"task_losses/{task_name}", loss)
             losses.append(s * loss)  # Scale the loss
@@ -81,11 +79,10 @@ class PolygonEncoder(pl.LightningModule):
         return loss
 
     def validation_step(self, batch, batch_idx):  # pylint: disable=unused-argument
-        labels = batch.pop("labels")
-        preds = self.forward(batch)
+        preds = self.forward(batch["inputs"])
 
         losses = []
-        for (task_name, task), pred, label, s in zip(self.tasks.items(), preds, labels, self.tasks_scales):
+        for (task_name, task), pred, label, s in zip(self.tasks.items(), preds, batch["labels"], self.tasks_scales):
             loss = task.get_loss_fn()(pred, label)
             self.log(f"val_task_losses/{task_name}", loss)
             losses.append(s * loss)  # Scale the loss
@@ -95,12 +92,10 @@ class PolygonEncoder(pl.LightningModule):
         return loss
 
     def test_step(self, batch, batch_idx):  # pylint: disable=unused-argument
-        labels = batch.pop("labels")
-
-        preds = self.forward(batch)
+        preds = self.forward(batch["inputs"])
 
         losses = []
-        for (task_name, task), pred, label, s in zip(self.tasks.items(), preds, labels, self.tasks_scales):
+        for (task_name, task), pred, label, s in zip(self.tasks.items(), preds, batch["labels"], self.tasks_scales):
             loss = task.get_loss_fn()(pred, label)
             self.log(f"test_task_losses/{task_name}", loss)
             losses.append(s * loss)  # Scale the loss

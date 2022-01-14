@@ -201,8 +201,10 @@ def collate(samples, tokenizer):
     polygons = [s[0] for s in samples]
     labels = [s[1] for s in samples]
 
+    batch = {}
+
     # Tokenize the polygons
-    batch = tokenizer(polygons)
+    batch["inputs"] = tokenizer(polygons)
 
     # Add the labels
     batch["labels"] = [torch.tensor([lbl[i] for lbl in labels], dtype=torch.float) for i in range(len(labels[0]))]

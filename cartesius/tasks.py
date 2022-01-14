@@ -132,10 +132,10 @@ class GuessOmbrRatio(Task):
     """
 
     def get_label(self, polygon):
-        if polygon.minimum_rotated_rectangle.area < EPS:
+        ombr = polygon.minimum_rotated_rectangle
+        if ombr.area == 0:
             return 1
-        else:
-            return polygon.area / polygon.minimum_rotated_rectangle.area
+        return polygon.area / ombr.area
 
 
 class GuessAspectRatio(Task):
@@ -143,10 +143,12 @@ class GuessAspectRatio(Task):
     """
 
     def get_label(self, polygon):
-        if polygon.minimum_rotated_rectangle.area < EPS:
-            return 1
-
-        ombr_coords = np.array(polygon.minimum_rotated_rectangle.exterior.coords)
+        ombr = polygon.minimum_rotated_rectangle
+        if ombr.area == 0:
+            if ombr.length == 0:
+                return 1
+            return 0
+        ombr_coords = np.array(ombr.exterior.coords)
         segvecs = ombr_coords[2] - ombr_coords[1], ombr_coords[1] - ombr_coords[0]
         x, y = [np.linalg.norm(vec) for vec in segvecs]
         return x / y if x < y else y / x
@@ -158,10 +160,9 @@ class GuessOpeningRatio(Task):
     """
 
     def get_label(self, polygon):
-        if polygon.area < EPS:
+        if polygon.area == 0:
             return 0
-        else:
-            return polygon.buffer(-0.1).buffer(0.1).area / polygon.area
+        return polygon.buffer(-0.1).buffer(0.1).area / polygon.area
 
 
 class GuessLongestThreeEdges(Task):

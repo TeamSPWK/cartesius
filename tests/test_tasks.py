@@ -1,4 +1,6 @@
 from shapely import wkt
+from shapely.geometry import LineString
+from shapely.geometry import Point
 
 from cartesius.tasks import GuessAspectRatio
 from cartesius.tasks import GuessConvexity
@@ -19,31 +21,73 @@ def test_convexity_task_is_close():
     assert label == 1
 
 
-def test_ombr_task_div_by_zero():
+def test_guess_ombr_ratio_point():
     task = GuessOmbrRatio()
 
-    p = wkt.loads("LINESTRING (0 0, 1 1)")
-    assert p.minimum_rotated_rectangle.area == 0
-
+    p = Point((0, 0))
     label = task.get_label(p)
     assert label == 1
 
 
-def test_opening_task_div_by_zero():
-    task = GuessOpeningRatio()
+def test_guess_ombr_ratio_linestring_straight():
+    task = GuessOmbrRatio()
 
-    p = wkt.loads("LINESTRING (0 0, 1 1)")
-    assert p.area == 0
+    p = LineString([(0, 0), (1, 1)])
+    label = task.get_label(p)
+    assert label == 1
 
+
+def test_guess_ombr_ratio_linestring_with_angle():
+    task = GuessOmbrRatio()
+
+    p = LineString([(0, 0), (1, 0), (1, 1)])
     label = task.get_label(p)
     assert label == 0
 
 
-def test_aspect_task_div_by_zero():
+def test_guess_aspect_ratio_point():
     task = GuessAspectRatio()
 
-    p = wkt.loads("LINESTRING (0 0, 1 1)")
-    assert p.area == 0
-
+    p = Point((0, 0))
     label = task.get_label(p)
     assert label == 1
+
+
+def test_guess_aspect_ratio_linestring_straignt():
+    task = GuessAspectRatio()
+
+    p = LineString([(0, 0), (1, 1)])
+    label = task.get_label(p)
+    assert label == 0
+
+
+def test_guess_aspect_ratio_linestring_with_angle():
+    task = GuessAspectRatio()
+
+    p = LineString([(0, 0), (1, 0), (1, 1)])
+    label = task.get_label(p)
+    assert label > 0
+
+
+def test_guess_opening_ratio_point():
+    task = GuessOpeningRatio()
+
+    p = Point((0, 0))
+    label = task.get_label(p)
+    assert label == 0
+
+
+def test_guess_opening_ratio_linestring_straight():
+    task = GuessOpeningRatio()
+
+    p = LineString([(0, 0), (1, 1)])
+    label = task.get_label(p)
+    assert label == 0
+
+
+def test_guess_opening_ratio_linestring_with_angle():
+    task = GuessOpeningRatio()
+
+    p = LineString([(0, 0), (1, 0), (1, 1)])
+    label = task.get_label(p)
+    assert label == 0

@@ -1,0 +1,6 @@
+# Metadata
+parent_config: "transformer.yaml"
+description: "Configuration to train a Transformer with cartesian & polar coordinates."
+
+# Data handling
+tokenizer: "transformer_augment"

@@ -1,52 +1,6 @@
 # Usage
 
-After installing the package, you can use the command **`cartesius`** to train and test a model.
-
-## How to train ?
-
-By default the `cartesius` command uses the default configuration, located in `cartesius/config/default.yaml` :
-
-```bash
-cartesius
-```
-
-Once the training started, it will log all information in `wandb`.
-
-Training results (including checkpoints) are saved in `results` folder by default.
-
----
-
-You can change the configuration by specifying a different configuration file :
-
-```bash
-cartesius config=transformer.yaml
-```
-
-!!! hint
-    You can directly specify the name of the configuration file if the file is located in `cartesius/config`, or you can specify a regular path to your configuration file. 
-
----
-
-You can also change each value of the configuration independently, directly from the command line :
-
-```bash
-cartesius seed=666 activation=relu
-```
-
-## How to test ?
-
-By default, the `cartesius` will **automatically** run tests **after training**, using the best checkpoint.
-
----
-
-You can test a specific checkpoint by specifying its path :
-
-```bash
-cartesius train=False test=True ckpt=<path/to/my/model.ckpt>
-```
-
-!!! tip
-    After testing, a file `submission.csv` will be saved. You can submit this file in the [Kaggle competition](https://www.kaggle.com/c/cartesius/).
+After installing the package, you can use the package to access the datasets and train your own model.
 
 ## Data
 
@@ -93,106 +47,14 @@ List of tasks currently implemented :
 * **`aspect_ratio`** : Predict "oriented minimum bounding rectangle aspect ratio" of the polygon. OMBR aspect ratio is defined as the length of shorter line divided by longer line of the OMBR. It represents wideness of the polygon.
 * **`opening_ratio`** : Predict "opening ratio" of the polygon. Opening ratio is defined as the area of the opening applied polygon divided by the area of the original polygon. It represents "how much polygon have useful space that is wide enough".
 
-## Configuration
+## Leaderboard
 
-### Metadata
+You can see the [public leaderboard on Kaggle](https://www.kaggle.com/c/cartesius/leaderboard).
 
-**`parent_config`** : Name of the configuration file to use as a parent (this configuration will inherit the values from the parent as default).
+## Notebooks
 
-**`description`** : Description of this configuration.
+A baseline notebook in included in the folder `notebooks/`.
 
-### General
+In this notebook, we implement a basic Transformer model, and train it using `cartesius` dataset.
 
-**`project_name`** : Name of the project in `wandb`.
-
-**`seed`** : Seed to use. If `None`, a random seed is used.
-
-**`train`** : Whether to run training or not.
-
-**`test`** : Whether to run testing or not.
-
-### Paths
-
-**`save_dir`** : Name of the folder where to save the results.
-
-**`ckpt`** : Path of the checkpoint to load.
-
-**`val_set_file`** : Path to the JSON file containing the validation set.
-
-**`test_set_file`** : Path to the JSON file containing the test set.
-
-**`kaggle_submission_file`** : Path where to save the CSV file that can be used as submission file for the Kaggle competition.
-
-### Model
-
-**`model_name`** : Name of the model to use.
-
-**`d_model`** : Dimension of the model.
-
-**`max_seq_len`** : Maximum sequence length.
-
-**`n_heads`** : Number of attention heads to use in Transformer.
-
-**`d_ff`** : Dimension for the hidden size of the FF network in Transformer.
-
-**`dropout`** : Dropout ratio.
-
-**`activation`** : Activation function to use for Transformer. Can be `gelu` or `relu`.
-
-**`n_layers`** : Number of Transformer layers.
-
-**`pooling`** : Type of pooling for representing the whole polygon in Transformer. Can be `first`, `mean`, or `max`.
-
-**`adjacent_only`** : If set to `True`, an adjency matrix will be used in SE(3)-Transformer. Otherwise all nodes are attended.
-
-### Tasks
-
-**`tasks`** : Names of the tasks to use.
-
-**`tasks_scales`** : Scales for the tasks' losses.
-
-**`task_dropout`** : Dropout ratio for the task regression heads.
-
-### Training
-
-**`batch_size`** : Batch size.
-
-**`n_batch_per_epoch`** : Number of batch to consider in one epoch.
-
-**`max_time`** : Maximum time alloted to training.
-
-**`n_workers`** : Number of loader worker processes (DataLoader).
-
-**`watch_model`** : Whether to watch model or not with `wandb`.
-
-### Optimizer & LR Scheduler
-
-**`lr`** : Learning rate.
-
-**`auto_lr_find`** : Whether to find LR automatically or not.
-
-**`grad_clip`** : Gradient clipping.
-
-**`scheduler`**: Name of the LR scheduler to user. Can be `cosannwarm` or null.
-
-**`sched_T_0`**: When using CosineAnnealingWarmRestart scheduler, this is the number of iterations for the first restart.
-
-**`sched_T_mult`**: When using CosineAnnealingWarmRestart scheduler, this is the factor increases after a restart.
-
-**`sched_min_lr_ratio`**: When using CosineAnnealingWarmRestart scheduler, this is the minimum learning rate.
-
-### Polygon generation
-
-**`x_range`** : Allowed range for the polygon center (x-axis).
-
-**`y_range`** : Allowed range for the polygon center (y-axis).
-
-**`n_range`** : Possible choices for the number of points generated in the polygon.
-
-**`avg_radius_range`** : Possible choices for the average radius of the generated polygon.
-
-### Data handling
- 
-**`transforms`** : Tranforms' names to apply on the data.
-
-**`tokenizer`** : Name of the tokenizer to use.
+At the end of the notebook, the model is evaluated, and a file `submission.csv` is saved. You can use this file for submission to the [Kaggle competition](https://www.kaggle.com/c/cartesius/).

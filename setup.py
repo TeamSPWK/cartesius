@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 reqs = ["torch~=1.9", "pytorch-lightning~=1.5", "shapely~=1.8", "omegaconf~=2.1", "matplotlib~=3.2", "wandb~=0.12"]
 
 extras_require = {
-    "docs": ["mkdocs-material~=7.3", "mkdocstrings~=0.16"],
+    "docs": ["mkdocs-material~=7.3", "mkdocstrings~=0.16", "setuptools==59.5.0"],
     "tests": ["pytest~=6.2"],
     "lint": ["isort~=5.10", "yapf~=0.31", "pylint~=2.11"],
     "graph": ["torch-geometric~=2.0"],

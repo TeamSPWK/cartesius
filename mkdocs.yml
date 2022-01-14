@@ -47,7 +47,6 @@ nav:
     - "code_ref/data.md"
     - "code_ref/tasks.md"
     - "code_ref/tokenizers.md"
-    - "code_ref/models.md"
     - "code_ref/modeling.md"
     - "code_ref/train.md"
     - "code_ref/utils.md"

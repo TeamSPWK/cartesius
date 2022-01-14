@@ -166,7 +166,7 @@ class GuessOpeningRatio(Task):
 
 class GuessLongestThreeEdges(Task):
     """Task sorting the edges of the polygon by its lengths.
-    #TODO: This task needs entity head and categorical loss (To be implemented)
+    TODO: This task needs entity head and categorical loss (To be implemented)
     """
 
     def get_label(self, polygon):

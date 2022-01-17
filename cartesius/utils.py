@@ -1,15 +1,7 @@
-import pathlib
-import sys
-
 import matplotlib.pyplot as plt
-from omegaconf import OmegaConf as omg
 from shapely.geometry import LineString
 from shapely.geometry import Point
 from shapely.geometry import Polygon
-import torch
-
-CONFIG_DIR = "config"
-ENCODER_KEY = "encoder."
 
 
 def print_polygon(poly, *args, **kwargs):
@@ -74,88 +66,6 @@ def save_polygon(*polygons, path="poly.png"):
     plt.gca().set_aspect(1)
     plt.axis("off")
     plt.savefig(path)
-
-
-def load_yaml(yaml_file):
-    """Function to load a configuration file, and recursively load parent configuration
-    files.
-
-    Note:
-        This funciton is recursive.
-
-    Args:
-        yaml_file (str): Path of the config file to load.
-
-    Returns:
-        omegaconf.OmegaConf: Loaded configuration.
-    """
-    # Try to load the file from the local config directory
-    try:
-        conf_dir_path = pathlib.Path(__file__).parent.resolve() / CONFIG_DIR / yaml_file
-        conf = omg.load(conf_dir_path)
-    except FileNotFoundError:
-        # Then maybe the user provided a path from the working dir ? Try to load it directly
-        conf = omg.load(yaml_file)
-
-    if conf.parent_config:
-        parent_conf = load_yaml(conf.parent_config)
-        conf = omg.merge(parent_conf, conf)
-
-    return conf
-
-
-def load_conf():
-    """Function loading the configuration.
-
-    This function will look for a configuration file path given from command
-    line, and if not given, will use a default configuration file path.
-    It will then load the configuration, retrieve parent configuration if any,
-    and merge it with the command line arguments.
-
-    Returns:
-        omegaconf.OmegaConf: Loaded configuration.
-    """
-    default_conf = omg.create({"config": "default.yaml"})
-
-    sys.argv = [a.strip("-") for a in sys.argv]
-    cli_conf = omg.from_cli()
-
-    yaml_file = omg.merge(default_conf, cli_conf).config
-
-    yaml_conf = load_yaml(yaml_file)
-
-    return omg.merge(default_conf, yaml_conf, cli_conf)
-
-
-def create_tags(conf):
-    """Function creating a list of tags (for wandb) from a configuration.
-
-    Args:
-        conf (omegaconf.OmegaConf): Configuration for this run.
-
-    Returns:
-        list: List of tags (str) corresponding to this configuration.
-    """
-    t = [conf.model_name]
-    if conf.test and not conf.train:
-        t.append("test_only")
-    return t
-
-
-def load_ckpt_state_dict(ckpt, *args, **kwargs):
-    """Small function loading specific part of the state dict of a checkpoint, to use
-    the encoder part only in downstream tasks.
-
-    Args:
-        ckpt (str): Path to the checkpoint to load.
-        *args (list): Additional positional arguments to pass to `torch.load()`.
-        **kwargs (dict): Additional keywords arguments to pass to `torch.load()`.
-
-    Returns:
-        dict: State dict of the encoder model used.
-    """
-    state_dict = torch.load(ckpt, *args, **kwargs)["state_dict"]
-    return {k[len(ENCODER_KEY):]: v for k, v in state_dict.items() if k.startswith(ENCODER_KEY)}
 
 
 def kaggle_convert_labels(task_names, labels, weights=None):

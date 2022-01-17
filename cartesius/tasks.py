@@ -14,12 +14,13 @@ class Task:
     You may optionally re-define `get_head()` and `get_loss_fn()`.
 
     Args:
-        conf ([type]): [description]
+        d_model (int, optional): Input dimension for the score head of the task. Defaults to 256.
+        task_dropout (float, optional): Dropout rate for the score head of the task. Defaults to 0.
     """
 
-    def __init__(self, conf):
-        self.d_in = conf["d_model"]
-        self.dropout = conf["task_dropout"]
+    def __init__(self, d_model=256, task_dropout=0):
+        self.d_in = d_model
+        self.dropout = task_dropout
 
     def get_label(self, polygon):
         """Method used to retrieve the labels for this task, given the polygon used
@@ -166,8 +167,7 @@ class GuessOpeningRatio(Task):
 
 class GuessLongestThreeEdges(Task):
     """Task sorting the edges of the polygon by its lengths.
-    Input have to be polygon.
-    #TODO: This task needs entity head and categorical loss (To be implemented)
+    TODO: This task needs entity head and categorical loss (To be implemented)
     """
 
     def get_label(self, polygon):
@@ -189,4 +189,16 @@ TASKS = {
     "ombr_ratio": GuessOmbrRatio,
     "aspect_ratio": GuessAspectRatio,
     "opening_ratio": GuessOpeningRatio,
+}
+
+DEFAULT_TASK_W = {
+    "area": 100,
+    "perimeter": 1,
+    "size": 50,
+    "convexity": 20,
+    "min_clear": 20,
+    "centroid": 50,
+    "ombr_ratio": 1,
+    "aspect_ratio": 1,
+    "opening_ratio": 1,
 }

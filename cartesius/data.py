@@ -19,22 +19,6 @@ from cartesius.transforms import TRANSFORMS
 DATA_DIR = "data"
 
 
-# Monkey-patch `extract_batch_size` to not raise warning from weird tensor sizes
-def extract_bs(self, batch):
-    try:
-        if "labels" in batch:
-            batch_size = batch["labels"][0].size(0)
-        else:
-            batch_size = pl.utilities.data.extract_batch_size(batch)
-    except RecursionError:
-        batch_size = 1
-    self.batch_size = batch_size
-    return batch_size
-
-
-pl.trainer.connectors.logger_connector.result.ResultCollection.extract_batch_size = extract_bs
-
-
 class PolygonDataset(Dataset):
     """Pytorch dataset generating random Polygon.
 
@@ -49,7 +33,7 @@ class PolygonDataset(Dataset):
             for the average radius of the generated polygon.
         n_range (list): list of int, representing the possible choices for the number
             of points used to generate a polygon.
-        tasks (list, optional): list of Tasks. These tasks will be used to compute the
+        tasks (dict, optional): Dict of Tasks. These tasks will be used to compute the
             labels of each polygon. Defaults to None.
         transforms (list, optional): list of Transforms to apply to the polygons after
             they are generated and before the labels are computed. Defaults to None.
@@ -74,7 +58,7 @@ class PolygonDataset(Dataset):
         self.y_range = y_range
         self.avg_radius_range = avg_radius_range
         self.n_range = n_range
-        self.tasks = tasks if tasks is not None else []
+        self.tasks = list(tasks.values()) if tasks is not None else []
         self.transforms = transforms if transforms is not None else []
 
         self.batch_size = batch_size
@@ -165,79 +149,6 @@ class PolygonDataset(Dataset):
             return Polygon(points)
 
 
-class PolygonDatasetV2(PolygonDataset):
-    """Pytorch dataset generating random Polygon from a more balanced distribution.
-
-    This dataset is used for training, as the data is randomly generated.
-
-    Args:
-        x_range (list): List of 2 elements representing the range from where to
-            draw the polygon center (x-axis).
-        y_range (list): List of 2 elements representing the range from where to
-            draw the polygon center (y-axis).
-        avg_radius_range (list): list of float, representing the possible choices
-            for the average radius of the generated polygon.
-        n_range (list): list of int, representing the possible choices for the number
-            of points used to generate a polygon.
-        tasks (list, optional): list of Tasks. These tasks will be used to compute the
-            labels of each polygon. Defaults to None.
-        transforms (list, optional): list of Transforms to apply to the polygons after
-            they are generated and before the labels are computed. Defaults to None.
-        batch_size (int, optional): Size of the batch. Defaults to 64.
-        n_batch_per_epoch (int, optional): Number of batch per epoch to simulate. Since
-            the dataset is infinite (randomly generated), we can choose the size of each
-            epoch. Defaults to 1000.
-    """
-
-    def __init__(self,
-                 x_range,
-                 y_range,
-                 avg_radius_range,
-                 n_range,
-                 tasks=None,
-                 transforms=None,
-                 batch_size=64,
-                 n_batch_per_epoch=1000):
-        super().__init__(x_range, y_range, avg_radius_range, n_range, tasks, transforms, batch_size, n_batch_per_epoch)
-        if 1 in self.n_range:
-            self.n_range.remove(1)
-        if 2 in self.n_range:
-            self.n_range.remove(2)
-
-    def __getitem__(self, idx):
-        # Randomly pick parameters for polygon generation
-        x_ctr = random.uniform(*self.x_range)
-        y_ctr = random.uniform(*self.y_range)
-        avg_radius = random.choice(self.avg_radius_range)
-        irregularity = random.random()
-        spikeyness = random.random()
-
-        # Balance between Points, LineStrings, and Polygons according to the validation set
-        prob = random.random()
-        if prob < 4 / 188:  #
-            p = self._gen_poly(x_ctr, y_ctr, avg_radius, irregularity, spikeyness, 1)
-        elif prob < 12 / 188:  # line
-            p = self._gen_poly(x_ctr, y_ctr, avg_radius, irregularity, spikeyness, 2)
-        elif prob < 20 / 188:  # colinear line
-            p = self._gen_poly(x_ctr, y_ctr, avg_radius, irregularity, spikeyness, 2)
-        elif prob < 56 / 188:  # other line (polygon - one line segment)
-            n = random.choice(self.n_range)
-            p = self._gen_poly(x_ctr, y_ctr, avg_radius, irregularity, spikeyness, n)
-            p = LineString(p.boundary.coords[:-1])
-        else:  # polygon
-            n = random.choice(self.n_range)
-            p = self._gen_poly(x_ctr, y_ctr, avg_radius, irregularity, spikeyness, n)
-
-        # Apply transforms
-        for tr in self.transforms:
-            p = tr(p)
-
-        # Compute labels for each task
-        labels = [task.get_label(p) for task in self.tasks]
-
-        return p, labels
-
-
 class PolygonTestset(Dataset):
     """Pytorch dataset reading polygons from a JSON file.
 
@@ -246,7 +157,7 @@ class PolygonTestset(Dataset):
 
     Args:
         datafile (str): Path of the JSON file containing the Polygon data
-        tasks (list, optional): list of Tasks. These tasks will be used to compute the
+        tasks (dict, optional): Dict of Tasks. These tasks will be used to compute the
             labels of each polygon. Defaults to None.
         transforms (list, optional): list of Transforms to apply to the polygons after
             they are generated and before the labels are computed. Defaults to None.
@@ -255,7 +166,7 @@ class PolygonTestset(Dataset):
     def __init__(self, datafile, tasks=None, transforms=None):
         super().__init__()
 
-        self.tasks = tasks if tasks is not None else []
+        self.tasks = list(tasks.values()) if tasks is not None else []
         self.transforms = transforms if transforms is not None else []
 
         # Try to load the data from local directory first
@@ -290,11 +201,13 @@ def collate(samples, tokenizer):
     polygons = [s[0] for s in samples]
     labels = [s[1] for s in samples]
 
+    batch = {}
+
     # Tokenize the polygons
-    batch = tokenizer(polygons)
+    batch["inputs"] = tokenizer(polygons)
 
     # Add the labels
-    batch["labels"] = [torch.tensor([lbl[i] for lbl in labels]) for i in range(len(labels[0]))]
+    batch["labels"] = [torch.tensor([lbl[i] for lbl in labels], dtype=torch.float) for i in range(len(labels[0]))]
     return batch
 
 
@@ -302,39 +215,64 @@ class PolygonDataModule(pl.LightningDataModule):
     """DataModule for the Polygon Dataset.
 
     Args:
-        conf (omegaconf.OmegaConf): Configuration.
-        tasks (list): List of Tasks to train on.
-        tokenizer (cartesius.tokenizers.Tokenizer): Tokenizer to use.
+        tasks (dict): Dict of Tasks.
+        tokenizer (cartesius.tokenizers.Tokenizer): Tokenizer, for turning polygons into Tensors.
+        x_range (list, optional): Range for x-axis polygon generation. Defaults to [-100, 100].
+        y_range (list, optional): Range for y-axis polygon generation. Defaults to [-100, 100].
+        avg_radius_range (list, optional): List of possible average radius for polygon generation.
+            Defaults to [0.25, 1, 2, 3, 4, 5, 6, 32].
+        n_range (list, optional): List of possible number of vertices for polygon generation.
+            Defaults to [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 50].
+        val_set_file (str, optional): Validation set file path. Defaults to "valset.json".
+        test_set_file (str, optional): Test set file path. Defaults to "testset.json".
+        transforms (list, optional): Names of Transforms to apply to data.
+            Defaults to ["norm_pos", "norm_static_scale"].
+        batch_size (int, optional): Batch size to use. Defaults to 64.
+        n_batch_per_epoch (int, optional): Number of batch per epoch (deciding the size of 1 epoch). Defaults to 1000.
+        n_workers (int, optional): Number of workers for the dataloader. Defaults to 8.
     """
 
-    def __init__(self, conf, tasks, tokenizer):
+    def __init__(  # pylint: disable=dangerous-default-value
+            self,
+            tasks,
+            tokenizer,
+            x_range=[-100, 100],
+            y_range=[-100, 100],
+            avg_radius_range=[0.25, 1, 2, 3, 4, 5, 6, 32],
+            n_range=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 50],
+            val_set_file="valset.json",
+            test_set_file="testset.json",
+            transforms=["norm_pos", "norm_static_scale"],
+            batch_size=64,
+            n_batch_per_epoch=1000,
+            n_workers=8):
         super().__init__()
 
-        self.x_range = conf["x_range"]
-        self.y_range = conf["y_range"]
-        self.avg_radius_range = conf["avg_radius_range"]
-        self.n_range = conf["n_range"]
+        self.x_range = x_range
+        self.y_range = y_range
+        self.avg_radius_range = avg_radius_range
+        self.n_range = n_range
         self.tasks = tasks
-        self.transforms = [TRANSFORMS[tr](conf) for tr in conf["transforms"]]
-        self.val_set_file = conf["val_set_file"]
-        self.test_set_file = conf["test_set_file"]
+        self.transforms = [TRANSFORMS[tr](max_radius_range=max(self.avg_radius_range)) for tr in transforms]
+        self.val_set_file = val_set_file
+        self.test_set_file = test_set_file
 
         self.tokenizer = tokenizer
         self.collate_fn = partial(collate, tokenizer=self.tokenizer)
 
-        self.batch_size = conf["batch_size"]
-        self.n_batch_per_epoch = conf["n_batch_per_epoch"]
-        self.n_workers = conf["n_workers"]
+        self.batch_size = batch_size
+        self.n_batch_per_epoch = n_batch_per_epoch
+        self.n_workers = n_workers
 
     def setup(self, stage=None):  # pylint: disable=unused-argument
-        self.poly_dataset = PolygonDatasetV2(x_range=self.x_range,
-                                             y_range=self.y_range,
-                                             avg_radius_range=self.avg_radius_range,
-                                             n_range=self.n_range,
-                                             tasks=self.tasks,
-                                             transforms=self.transforms,
-                                             batch_size=self.batch_size,
-                                             n_batch_per_epoch=self.n_batch_per_epoch)
+        self.poly_dataset = PolygonDataset(x_range=self.x_range,
+                                           y_range=self.y_range,
+                                           avg_radius_range=self.avg_radius_range,
+                                           n_range=self.n_range,
+                                           tasks=self.tasks,
+                                           transforms=self.transforms,
+                                           batch_size=self.batch_size,
+                                           n_batch_per_epoch=self.n_batch_per_epoch)
         self.val_dataset = PolygonTestset(datafile=self.val_set_file, tasks=self.tasks, transforms=self.transforms)
         self.test_dataset = PolygonTestset(datafile=self.test_set_file, tasks=self.tasks, transforms=self.transforms)
 

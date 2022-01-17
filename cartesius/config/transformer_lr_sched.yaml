@@ -1,6 +1,0 @@
-# Metadata
-parent_config: "transformer.yaml"
-description: "Transformer configuration with static scale, but use a LR scheduler during training."
-
-# Optimizer & LR Scheduler
-scheduler: "cosannwarm"

@@ -20,7 +20,7 @@ from cartesius.transforms import NormalizeScaleTransform
     box(-10, -10, 10, 10),
 ])
 def test_norm_pos(p):
-    transfo = NormalizePositionTransform(None)
+    transfo = NormalizePositionTransform()
 
     result = transfo(p)
 
@@ -38,7 +38,7 @@ def test_norm_pos(p):
     box(1, 1, 1.2, 1.1),
 ])
 def test_norm_scale(p):
-    transfo = NormalizeScaleTransform(None)
+    transfo = NormalizeScaleTransform()
     min_x, min_y, max_x, max_y = p.bounds
     scale_size = max([max_x - min_x, max_y - min_y])
 
@@ -61,7 +61,7 @@ def test_norm_scale(p):
     box(1, 1, 1.2, 1.1),
 ])
 def test_norm_static_scale(p):
-    transfo = NormalizeScaleStaticTransform({"avg_radius_range": [1, 2, 5]})
+    transfo = NormalizeScaleStaticTransform(max_radius_range=5)
 
     result = transfo(p)
 

@@ -35,19 +35,10 @@ markdown_extensions:
 nav:
   - Welcome: "index.md"
   - "usage.md"
-  - "leaderboard.md"
-  - "downstream.md"
-  - Models:
-    - "models/transformer.md"
-    - "models/graph.md"
-    - "models/se3.md"
-    - "models/contribute.md"
-    - "": "models/upload_ckpt.md"
   - Code Reference:
     - "code_ref/data.md"
     - "code_ref/tasks.md"
     - "code_ref/tokenizers.md"
-    - "code_ref/models.md"
     - "code_ref/modeling.md"
     - "code_ref/train.md"
     - "code_ref/utils.md"

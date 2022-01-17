@@ -1,8 +1,7 @@
-# Training script
+# LightningModule
 
-::: cartesius.train
+::: cartesius.PolygonEncoder
     selection:
-      filters: ["!forward", "!training_step", "!validation_step", "!test_step", "!configure_optimizers"]
+      filters: ["!forward", "!training_step", "!validation_step", "!test_step", "!configure_optimizers", "!test_epoch_end"]
     rendering:
-      show_root_heading: False
       show_root_toc_entry: False

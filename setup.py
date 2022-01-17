@@ -14,7 +14,7 @@ extras_require["all"] = sum(extras_require.values(), [])
 extras_require["dev"] = extras_require["docs"] + extras_require["tests"] + extras_require["lint"]
 
 setuptools.setup(name="spwk-cartesius",
-                 version="0.1.0",
+                 version="0.2.0.dev0",
                  author="Nicolas REMOND",
                  author_email="remondn@spacewalk.tech",
                  description="Benchmark & Pretraining for Cartesian coordinates feature extraction",

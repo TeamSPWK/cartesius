@@ -116,30 +116,22 @@ class PolygonDataset(Dataset):
         spikeyness = spikeyness * avg_radius
 
         # Generate n angle steps
-        angle_steps = []
         lower = (2 * math.pi / n_vert) - irregularity
         upper = (2 * math.pi / n_vert) + irregularity
-        s = 0
-        for i in range(n_vert):
-            tmp = random.uniform(lower, upper)
-            angle_steps.append(tmp)
-            s = s + tmp
+        angle_steps = np.random.uniform(lower, upper, n_vert)
+        s = angle_steps.sum()
 
         # Normalize the steps so that point 0 and point n+1 are the same
         k = s / (2 * math.pi)
-        for i in range(n_vert):
-            angle_steps[i] = angle_steps[i] / k
+        angle_steps = angle_steps / k
 
         # Now generate the points
-        points = []
         angle = random.uniform(0, 2 * math.pi)
-        for i in range(n_vert):
-            r_i = np.clip(random.gauss(avg_radius, spikeyness), 0, 2 * avg_radius)
-            x = x_ctr + r_i * math.cos(angle)
-            y = y_ctr + r_i * math.sin(angle)
-            points.append((x, y))
-
-            angle = angle + angle_steps[i]
+        angles = np.cumsum(angle_steps) + angle
+        rs = np.clip(np.random.normal(avg_radius, spikeyness, n_vert), 0, 2 * avg_radius)
+        xs = x_ctr + np.multiply(rs, np.cos(angles))
+        ys = y_ctr + np.multiply(rs, np.sin(angles))
+        points = [(x, y) for x, y in zip(xs, ys)]
 
         if len(points) == 1:
             return Point(points)
